@@ -25,10 +25,203 @@
 #define DEFAULT_CAPTIVE_SSID "Aura"
 #define UPDATE_INTERVAL 600000UL  // 10 minutes
 
+LV_FONT_DECLARE(lv_font_montserrat_latin_12);
+LV_FONT_DECLARE(lv_font_montserrat_latin_14);
+LV_FONT_DECLARE(lv_font_montserrat_latin_16);
+LV_FONT_DECLARE(lv_font_montserrat_latin_20);
+LV_FONT_DECLARE(lv_font_montserrat_latin_42);
+
+// Language support
+enum Language { LANG_EN = 0, LANG_ES = 1, LANG_DE = 2, LANG_FR = 3 };
+static Language current_language = LANG_EN;
+
+struct LocalizedStrings {
+  const char* temp_placeholder;
+  const char* feels_like_temp;
+  const char* seven_day_forecast;
+  const char* hourly_forecast;
+  const char* today;
+  const char* now;
+  const char* am;
+  const char* pm;
+  const char* noon;
+  const char* invalid_hour;
+  const char* brightness;
+  const char* location;
+  const char* use_fahrenheit;
+  const char* use_24hr;
+  const char* save;
+  const char* cancel;
+  const char* close;
+  const char* location_btn;
+  const char* reset_wifi;
+  const char* reset;
+  const char* change_location;
+  const char* aura_settings;
+  const char* city;
+  const char* search_results;
+  const char* city_placeholder;
+  const char* wifi_config;
+  const char* reset_confirmation;
+  const char* language_label;
+  const char* weekdays[7];
+};
+
+static const LocalizedStrings strings_en = {
+  "--°C", "Feels Like --°C", "SEVEN DAY FORECAST", "HOURLY FORECAST",
+  "Today", "Now", "am", "pm", "Noon", "Invalid hour",
+  "Brightness:", "Location:", "Use °F:", "24hr:",
+  "Save", "Cancel", "Close", "Location", "Reset Wi-Fi",
+  "Reset", "Change Location", "Aura Settings",
+  "City:", "Search Results", "e.g. London",
+  "Wi-Fi Configuration:\n\n"
+  "Please connect your\n"
+  "phone or laptop to the\n"
+  "temporary Wi-Fi access\n point "
+  DEFAULT_CAPTIVE_SSID
+  "\n"
+  "to configure.\n\n"
+  "If you don't see a \n"
+  "configuration screen \n"
+  "after connecting,\n"
+  "visit http://192.168.4.1\n"
+  "in your web browser.",
+  "Are you sure you want to reset "
+  "Wi-Fi credentials?\n\n"
+  "You'll need to reconnect to the Wifi SSID " DEFAULT_CAPTIVE_SSID
+  " with your phone or browser to "
+  "reconfigure Wi-Fi credentials.",
+  "Language:",
+  {"Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"}
+};
+
+static const LocalizedStrings strings_es = {
+  "--°C", "Sensación --°C", "PRONÓSTICO 7 DÍAS", "PRONÓSTICO POR HORAS",
+  "Hoy", "Ahora", "am", "pm", "Mediodía", "Hora inválida",
+  "Brillo:", "Ubicación:", "Usar °F:", "24h:",
+  "Guardar", "Cancelar", "Cerrar", "Ubicación", "Wi-Fi",
+  "Restablecer", "Cambiar Ubicación", "Configuración Aura",
+  "Ciudad:", "Resultados de Búsqueda", "ej. Madrid",
+  "Configuración Wi-Fi:\n\n"
+  "Conecte su teléfono\n"
+  "o portátil al punto de\n"
+  "acceso Wi-Fi temporal\n"
+  DEFAULT_CAPTIVE_SSID
+  "\n"
+  "para configurar.\n\n"
+  "Si no ve una pantalla\n"
+  "de configuración después\n"
+  "de conectarse, visite\n"
+  "http://192.168.4.1\n"
+  "en su navegador.",
+  "¿Está seguro de que desea\n"
+  "restablecer las credenciales\n"
+  "Wi-Fi?\n\n"
+  "Deberá reconectarse al SSID " DEFAULT_CAPTIVE_SSID
+  " con su teléfono o navegador\n"
+  "para reconfigurar las\n"
+  "credenciales Wi-Fi.",
+  "Idioma:",
+  {"Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"}
+};
+
+static const LocalizedStrings strings_de = {
+  "--°C", "Gefühlt --°C", "7-TAGE VORHERSAGE", "STÜNDLICHE VORHERSAGE",
+  "Heute", "Jetzt", "", "", "Mittag", "Ungültige Stunde",
+  "Helligkeit:", "Standort:", "°F:", "24h:",
+  "Speichern", "Abbrechen", "Schließen", "Standort", "Wi-Fi",
+  "Zurücksetzen", "Standort ändern", "Aura Einstellungen",
+  "Stadt:", "Suchergebnisse", "z.B. Berlin",
+  "Wi-Fi Konfiguration:\n\n"
+  "Verbinden Sie Ihr Telefon\n"
+  "oder Laptop mit dem\n"
+  "temporären Wi-Fi\n"
+  "Zugangspunkt "
+  DEFAULT_CAPTIVE_SSID
+  "\n"
+  "zum Konfigurieren.\n\n"
+  "Wenn Sie keinen\n"
+  "Konfigurationsbildschirm\n"
+  "sehen, besuchen Sie\n"
+  "http://192.168.4.1\n"
+  "in Ihrem Browser.",
+  "Sind Sie sicher, dass Sie\n"
+  "die Wi-Fi Zugangsdaten\n"
+  "zurücksetzen möchten?\n\n"
+  "Sie müssen sich erneut mit\n"
+  "der SSID " DEFAULT_CAPTIVE_SSID
+  " verbinden, um die\n"
+  "Wi-Fi Zugangsdaten\n"
+  "neu zu konfigurieren.",
+  "Sprache:",
+  {"So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"}
+};
+
+static const LocalizedStrings strings_fr = {
+  "--°C", "Ressenti --°C", "PRÉVISIONS 7 JOURS", "PRÉVISIONS HORAIRES",
+  "Aujourd'hui", "Maintenant", "h", "h", "Midi", "Heure invalide",
+  "Luminosité:", "Lieu:", "Utiliser °F:", "24h:",
+  "Sauvegarder", "Annuler", "Fermer", "Lieu", "Wi-Fi",
+  "Réinitialiser", "Changer de lieu", "Paramètres Aura",
+  "Ville:", "Résultats de recherche", "ex. Paris",
+  "Configuration Wi-Fi:\n\n"
+  "Connectez votre téléphone\n"
+  "ou ordinateur portable au\n"
+  "point d'accès Wi-Fi\n"
+  "temporaire "
+  DEFAULT_CAPTIVE_SSID
+  "\n"
+  "pour configurer.\n\n"
+  "Si vous ne voyez pas\n"
+  "d'écran de configuration\n"
+  "après connexion, visitez\n"
+  "http://192.168.4.1\n"
+  "dans votre navigateur.",
+  "Êtes-vous sûr de vouloir\n"
+  "réinitialiser les\n"
+  "identifiants Wi-Fi?\n\n"
+  "Vous devrez vous reconnecter\n"
+  "au SSID " DEFAULT_CAPTIVE_SSID
+  " avec votre téléphone ou\n"
+  "navigateur pour reconfigurer\n"
+  "les identifiants Wi-Fi.",
+  "Langue:",
+  {"Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"}
+};
+
+static const LocalizedStrings* get_strings() {
+  switch (current_language) {
+    case LANG_ES: return &strings_es;
+    case LANG_DE: return &strings_de;
+    case LANG_FR: return &strings_fr;
+    default: return &strings_en;
+  }
+}
+
+// Font selection based on language
+const lv_font_t* get_font_12() {
+  return &lv_font_montserrat_latin_12;
+}
+
+const lv_font_t* get_font_14() {
+  return &lv_font_montserrat_latin_14;
+}
+
+const lv_font_t* get_font_16() {
+  return &lv_font_montserrat_latin_16;
+}
+
+const lv_font_t* get_font_20() {
+  return &lv_font_montserrat_latin_20;
+}
+
+const lv_font_t* get_font_42() {
+  return &lv_font_montserrat_latin_42;
+}
+
 SPIClass touchscreenSPI = SPIClass(VSPI);
 XPT2046_Touchscreen touchscreen(XPT2046_CS, XPT2046_IRQ);
 uint32_t draw_buf[DRAW_BUF_SIZE / 4];
-static const char *weekdays[] = {"Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"};
 int x, y, z;
 
 // Preferences
@@ -67,6 +260,7 @@ static lv_obj_t *settings_win;
 static lv_obj_t *location_win = nullptr;
 static lv_obj_t *unit_switch;
 static lv_obj_t *clock_24hr_switch;
+static lv_obj_t *language_dropdown;
 static lv_obj_t *lbl_clock;
 
 // Weather icons
@@ -141,7 +335,8 @@ int day_of_week(int y, int m, int d) {
 }
 
 String hour_of_day(int hour) {
-  if(hour < 0 || hour > 23) return String("Invalid hour");
+  const LocalizedStrings* strings = get_strings();
+  if(hour < 0 || hour > 23) return String(strings->invalid_hour);
 
   if (use_24_hour) {
     if (hour < 10)
@@ -149,11 +344,11 @@ String hour_of_day(int hour) {
     else
       return String(hour);
   } else {
-    if(hour == 0)   return String("12am");
-    if(hour == 12)  return String("Noon");
+    if(hour == 0)   return String("12") + strings->am;
+    if(hour == 12)  return String(strings->noon);
 
     bool isMorning = (hour < 12);
-    String suffix = isMorning ? "am" : "pm";
+    String suffix = isMorning ? strings->am : strings->pm;
 
     int displayHour = hour % 12;
 
@@ -182,13 +377,14 @@ static void update_clock(lv_timer_t *timer) {
   struct tm timeinfo;
   if (!getLocalTime(&timeinfo)) return;
 
+  const LocalizedStrings* strings = get_strings();
   char buf[16];
   if (use_24_hour) {
     snprintf(buf, sizeof(buf), "%02d:%02d", timeinfo.tm_hour, timeinfo.tm_min);
   } else {
     int hour = timeinfo.tm_hour % 12;
     if(hour == 0) hour = 12;
-    const char *ampm = (timeinfo.tm_hour < 12) ? "am" : "pm";
+    const char *ampm = (timeinfo.tm_hour < 12) ? strings->am : strings->pm;
     snprintf(buf, sizeof(buf), "%d:%02d%s", hour, timeinfo.tm_min, ampm);
   }
   lv_label_set_text(lbl_clock, buf);
@@ -266,6 +462,7 @@ void setup() {
   location = prefs.getString("location", LOCATION_DEFAULT);
   uint32_t brightness = prefs.getUInt("brightness", 255);
   use_24_hour = prefs.getBool("use24Hour", false);
+  current_language = (Language)prefs.getUInt("language", LANG_EN);
   analogWrite(LCD_BACKLIGHT_PIN, brightness);
 
   // Check for Wi-Fi config and request it if not available
@@ -314,20 +511,10 @@ void wifi_splash_screen() {
   lv_obj_set_style_bg_grad_dir(scr, LV_GRAD_DIR_VER, LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
 
+  const LocalizedStrings* strings = get_strings();
   lv_obj_t *lbl = lv_label_create(scr);
-  lv_label_set_text(lbl,
-                    "Wi-Fi Configuration:\n\n"
-                    "Please connect your\n"
-                    "phone or laptop to the\n"
-                    "temporary Wi-Fi access\n point "
-                    DEFAULT_CAPTIVE_SSID
-                    "\n"
-                    "to configure.\n\n"
-                    "If you don't see a \n"
-                    "configuration screen \n"
-                    "after connecting,\n"
-                    "visit http://192.168.4.1\n"
-                    "in your web browser.");
+  lv_label_set_text(lbl, strings->wifi_config);
+  lv_obj_set_style_text_font(lbl, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_text_align(lbl, LV_TEXT_ALIGN_CENTER, 0);
   lv_obj_center(lbl);
   lv_scr_load(scr);
@@ -352,21 +539,23 @@ void create_ui() {
   lv_style_set_text_color(&default_label_style, lv_color_hex(0xFFFFFF));
   lv_style_set_text_opa(&default_label_style, LV_OPA_COVER);
 
+  const LocalizedStrings* strings = get_strings();
+
   lbl_today_temp = lv_label_create(scr);
-  lv_label_set_text(lbl_today_temp, "--°C");
-  lv_obj_set_style_text_font(lbl_today_temp, &lv_font_montserrat_42, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_label_set_text(lbl_today_temp, strings->temp_placeholder);
+  lv_obj_set_style_text_font(lbl_today_temp, get_font_42(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_align(lbl_today_temp, LV_ALIGN_TOP_MID, 45, 25);
   lv_obj_add_style(lbl_today_temp, &default_label_style, LV_PART_MAIN | LV_STATE_DEFAULT);
 
   lbl_today_feels_like = lv_label_create(scr);
-  lv_label_set_text(lbl_today_feels_like, "Feels Like --°C");
-  lv_obj_set_style_text_font(lbl_today_feels_like, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_label_set_text(lbl_today_feels_like, strings->feels_like_temp);
+  lv_obj_set_style_text_font(lbl_today_feels_like, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_text_color(lbl_today_feels_like, lv_color_hex(0xe4ffff), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_align(lbl_today_feels_like, LV_ALIGN_TOP_MID, 45, 75);
 
   lbl_forecast = lv_label_create(scr);
-  lv_label_set_text(lbl_forecast, "SEVEN DAY FORECAST");
-  lv_obj_set_style_text_font(lbl_forecast, &lv_font_montserrat_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_label_set_text(lbl_forecast, strings->seven_day_forecast);
+  lv_obj_set_style_text_font(lbl_forecast, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_text_color(lbl_forecast, lv_color_hex(0xe4ffff), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_align(lbl_forecast, LV_ALIGN_TOP_LEFT, 20, 110);
 
@@ -390,16 +579,16 @@ void create_ui() {
     img_daily[i] = lv_img_create(box_daily);
 
     lv_obj_add_style(lbl_daily_day[i], &default_label_style, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(lbl_daily_day[i], &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(lbl_daily_day[i], get_font_16(), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_align(lbl_daily_day[i], LV_ALIGN_TOP_LEFT, 2, i * 24);
 
     lv_obj_add_style(lbl_daily_high[i], &default_label_style, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(lbl_daily_high[i], &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(lbl_daily_high[i], get_font_16(), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_align(lbl_daily_high[i], LV_ALIGN_TOP_RIGHT, 0, i * 24);
 
     lv_label_set_text(lbl_daily_low[i], "");
     lv_obj_set_style_text_color(lbl_daily_low[i], lv_color_hex(0xb9ecff), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(lbl_daily_low[i], &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(lbl_daily_low[i], get_font_16(), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_align(lbl_daily_low[i], LV_ALIGN_TOP_RIGHT, -50, i * 24);
 
     lv_img_set_src(img_daily[i], &icon_partly_cloudy);
@@ -426,16 +615,16 @@ void create_ui() {
     img_hourly[i] = lv_img_create(box_hourly);
 
     lv_obj_add_style(lbl_hourly[i], &default_label_style, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(lbl_hourly[i], &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(lbl_hourly[i], get_font_16(), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_align(lbl_hourly[i], LV_ALIGN_TOP_LEFT, 2, i * 24);
 
     lv_obj_add_style(lbl_hourly_temp[i], &default_label_style, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(lbl_hourly_temp[i], &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(lbl_hourly_temp[i], get_font_16(), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_align(lbl_hourly_temp[i], LV_ALIGN_TOP_RIGHT, 0, i * 24);
 
     lv_label_set_text(lbl_precipitation_probability[i], "");
     lv_obj_set_style_text_color(lbl_precipitation_probability[i], lv_color_hex(0xb9ecff), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(lbl_precipitation_probability[i], &lv_font_montserrat_16, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(lbl_precipitation_probability[i], get_font_16(), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_align(lbl_precipitation_probability[i], LV_ALIGN_TOP_RIGHT, -55, i * 24);
 
     lv_img_set_src(img_hourly[i], &icon_partly_cloudy);
@@ -446,7 +635,7 @@ void create_ui() {
 
   // Create clock label in the top-right corner
   lbl_clock = lv_label_create(scr);
-  lv_obj_set_style_text_font(lbl_clock, &lv_font_montserrat_14, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_text_font(lbl_clock, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_text_color(lbl_clock, lv_color_hex(0xb9ecff), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_label_set_text(lbl_clock, "");
   lv_obj_align(lbl_clock, LV_ALIGN_TOP_RIGHT, -10, 5);
@@ -518,34 +707,35 @@ void screen_event_cb(lv_event_t *e) {
 }
 
 void daily_cb(lv_event_t *e) {
+  const LocalizedStrings* strings = get_strings();
   lv_obj_add_flag(box_daily, LV_OBJ_FLAG_HIDDEN);
-  lv_label_set_text(lbl_forecast, "HOURLY FORECAST");
+  lv_label_set_text(lbl_forecast, strings->hourly_forecast);
   lv_obj_clear_flag(box_hourly, LV_OBJ_FLAG_HIDDEN);
 }
 
 void hourly_cb(lv_event_t *e) {
+  const LocalizedStrings* strings = get_strings();
   lv_obj_add_flag(box_hourly, LV_OBJ_FLAG_HIDDEN);
-  lv_label_set_text(lbl_forecast, "SEVEN DAY FORECAST");
+  lv_label_set_text(lbl_forecast, strings->seven_day_forecast);
   lv_obj_clear_flag(box_daily, LV_OBJ_FLAG_HIDDEN);
 }
 
 
 static void reset_wifi_event_handler(lv_event_t *e) {
+  const LocalizedStrings* strings = get_strings();
   lv_obj_t *mbox = lv_msgbox_create(lv_scr_act());
-  lv_obj_t *title = lv_msgbox_add_title(mbox, "Reset");
+  lv_obj_t *title = lv_msgbox_add_title(mbox, strings->reset);
   lv_obj_set_style_margin_left(title, 10, 0);
-  lv_obj_set_style_text_font(title, &lv_font_montserrat_20, 0);
+  lv_obj_set_style_text_font(title, get_font_20(), 0);
 
-  lv_msgbox_add_text(mbox,
-                     "Are you sure you want to reset "
-                     "Wi-Fi credentials?\n\n"
-                     "You'll need to reconnect to the Wifi SSID " DEFAULT_CAPTIVE_SSID
-                     " with your phone or browser to "
-                     "reconfigure Wi-Fi credentials.");
+  lv_obj_t *text = lv_msgbox_add_text(mbox, strings->reset_confirmation);
+  lv_obj_set_style_text_font(text, get_font_12(), 0);
   lv_msgbox_add_close_button(mbox);
 
-  lv_obj_t *btn_no = lv_msgbox_add_footer_button(mbox, "Cancel");
-  lv_obj_t *btn_yes = lv_msgbox_add_footer_button(mbox, "Reset");
+  lv_obj_t *btn_no = lv_msgbox_add_footer_button(mbox, strings->cancel);
+  lv_obj_set_style_text_font(btn_no, get_font_12(), 0);
+  lv_obj_t *btn_yes = lv_msgbox_add_footer_button(mbox, strings->reset);
+  lv_obj_set_style_text_font(btn_yes, get_font_12(), 0);
 
   lv_obj_set_style_bg_color(btn_yes, lv_palette_main(LV_PALETTE_RED), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_bg_color(btn_yes, lv_palette_darken(LV_PALETTE_RED, 1), LV_PART_MAIN | LV_STATE_PRESSED);
@@ -584,9 +774,10 @@ static void change_location_event_cb(lv_event_t *e) {
 }
 
 void create_location_dialog() {
+  const LocalizedStrings* strings = get_strings();
   location_win = lv_win_create(lv_scr_act());
-  lv_obj_t *title = lv_win_add_title(location_win, "Change Location");
-  lv_obj_set_style_text_font(title, &lv_font_montserrat_20, 0);
+  lv_obj_t *title = lv_win_add_title(location_win, strings->change_location);
+  lv_obj_set_style_text_font(title, get_font_20(), 0);
   lv_obj_set_style_margin_left(title, 10, 0);
   lv_obj_set_size(location_win, 240, 320);
   lv_obj_center(location_win);
@@ -594,12 +785,13 @@ void create_location_dialog() {
   lv_obj_t *cont = lv_win_get_content(location_win);
 
   lv_obj_t *lbl = lv_label_create(cont);
-  lv_label_set_text(lbl, "City:");
+  lv_label_set_text(lbl, strings->city);
+  lv_obj_set_style_text_font(lbl, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_align(lbl, LV_ALIGN_TOP_LEFT, 5, 10);
 
   loc_ta = lv_textarea_create(cont);
   lv_textarea_set_one_line(loc_ta, true);
-  lv_textarea_set_placeholder_text(loc_ta, "e.g. London");
+  lv_textarea_set_placeholder_text(loc_ta, strings->city_placeholder);
   lv_obj_set_width(loc_ta, 170);
   lv_obj_align_to(loc_ta, lbl, LV_ALIGN_OUT_RIGHT_MID, 5, 0);
 
@@ -607,12 +799,19 @@ void create_location_dialog() {
   lv_obj_add_event_cb(loc_ta, ta_defocus_cb, LV_EVENT_DEFOCUSED, kb);
 
   lv_obj_t *lbl2 = lv_label_create(cont);
-  lv_label_set_text(lbl2, "Search Results");
+  lv_label_set_text(lbl2, strings->search_results);
+  lv_obj_set_style_text_font(lbl2, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_align(lbl2, LV_ALIGN_TOP_LEFT, 5, 50);
 
   results_dd = lv_dropdown_create(cont);
   lv_obj_set_width(results_dd, 200);
   lv_obj_align(results_dd, LV_ALIGN_TOP_LEFT, 5, 70);
+  lv_obj_set_style_text_font(results_dd, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_text_font(results_dd, get_font_14(), LV_PART_SELECTED | LV_STATE_DEFAULT);
+
+  lv_obj_t *list = lv_dropdown_get_list(results_dd);
+  lv_obj_set_style_text_font(list, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
+
   lv_dropdown_set_options(results_dd, "");
   lv_obj_clear_flag(results_dd, LV_OBJ_FLAG_CLICKABLE);
 
@@ -627,7 +826,8 @@ void create_location_dialog() {
   lv_obj_clear_flag(btn_close_loc, LV_OBJ_FLAG_CLICKABLE);
 
   lv_obj_t *lbl_close = lv_label_create(btn_close_loc);
-  lv_label_set_text(lbl_close, "Save");
+  lv_label_set_text(lbl_close, strings->save);
+  lv_obj_set_style_text_font(lbl_close, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_center(lbl_close);
 
   lv_obj_t *btn_cancel_loc = lv_btn_create(cont);
@@ -636,16 +836,18 @@ void create_location_dialog() {
   lv_obj_add_event_cb(btn_cancel_loc, location_cancel_event_cb, LV_EVENT_CLICKED, &geoResults);
 
   lv_obj_t *lbl_cancel = lv_label_create(btn_cancel_loc);
-  lv_label_set_text(lbl_cancel, "Cancel");
+  lv_label_set_text(lbl_cancel, strings->cancel);
+  lv_obj_set_style_text_font(lbl_cancel, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_center(lbl_cancel);
 }
 
 void create_settings_window() {
   if (settings_win) return;
 
+  const LocalizedStrings* strings = get_strings();
   settings_win = lv_win_create(lv_scr_act());
-  lv_obj_t *title = lv_win_add_title(settings_win, "Aura Settings");
-  lv_obj_set_style_text_font(title, &lv_font_montserrat_20, 0);
+  lv_obj_t *title = lv_win_add_title(settings_win, strings->aura_settings);
+  lv_obj_set_style_text_font(title, get_font_20(), 0);
   lv_obj_set_style_margin_left(title, 10, 0);
 
   lv_obj_center(settings_win);
@@ -655,10 +857,11 @@ void create_settings_window() {
 
   // Brightness
   lv_obj_t *lbl_b = lv_label_create(cont);
-  lv_label_set_text(lbl_b, "Brightness:");
-  lv_obj_align(lbl_b, LV_ALIGN_TOP_LEFT, 0, 10);
+  lv_label_set_text(lbl_b, strings->brightness);
+  lv_obj_set_style_text_font(lbl_b, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align(lbl_b, LV_ALIGN_TOP_LEFT, 0, 5);
   lv_obj_t *slider = lv_slider_create(cont);
-  lv_slider_set_range(slider, 10, 255);
+  lv_slider_set_range(slider, 1, 255);
   uint32_t saved_b = prefs.getUInt("brightness", 128);
   lv_slider_set_value(slider, saved_b, LV_ANIM_OFF);
   lv_obj_set_width(slider, 100);
@@ -672,24 +875,28 @@ void create_settings_window() {
   }, LV_EVENT_VALUE_CHANGED, NULL);
 
   lv_obj_t *lbl_loc_l = lv_label_create(cont);
-  lv_label_set_text(lbl_loc_l, "Location:");
-  lv_obj_align(lbl_loc_l, LV_ALIGN_TOP_LEFT, 0, 85);
+  lv_label_set_text(lbl_loc_l, strings->location);
+  lv_obj_set_style_text_font(lbl_loc_l, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align(lbl_loc_l, LV_ALIGN_TOP_LEFT, 0, 70);
 
   lbl_loc = lv_label_create(cont);
   lv_label_set_text(lbl_loc, location.c_str());
+  lv_obj_set_style_text_font(lbl_loc, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_align_to(lbl_loc, lbl_loc_l, LV_ALIGN_OUT_RIGHT_MID, 5, 0);
 
   lv_obj_t *btn_change_loc = lv_btn_create(cont);
-  lv_obj_align(btn_change_loc, LV_ALIGN_TOP_LEFT, 0, 130);
+  lv_obj_align(btn_change_loc, LV_ALIGN_TOP_LEFT, 0, 140);
   lv_obj_set_size(btn_change_loc, 100, 40);
   lv_obj_add_event_cb(btn_change_loc, change_location_event_cb, LV_EVENT_CLICKED, NULL);
   lv_obj_t *lbl_chg = lv_label_create(btn_change_loc);
-  lv_label_set_text(lbl_chg, "Location");
+  lv_label_set_text(lbl_chg, strings->location_btn);
+  lv_obj_set_style_text_font(lbl_chg, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_center(lbl_chg);
 
   lv_obj_t *lbl_u = lv_label_create(cont);
-  lv_label_set_text(lbl_u, "Use °F:");
-  lv_obj_align(lbl_u, LV_ALIGN_TOP_LEFT, 0, 48);
+  lv_label_set_text(lbl_u, strings->use_fahrenheit);
+  lv_obj_set_style_text_font(lbl_u, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align(lbl_u, LV_ALIGN_TOP_LEFT, 0, 38);
 
   unit_switch = lv_switch_create(cont);
   lv_obj_align_to(unit_switch, lbl_u, LV_ALIGN_OUT_RIGHT_MID, 6, 0);
@@ -701,8 +908,9 @@ void create_settings_window() {
   lv_obj_add_event_cb(unit_switch, settings_event_handler, LV_EVENT_VALUE_CHANGED, NULL);
 
   lv_obj_t *lbl_24hr = lv_label_create(cont);
-  lv_label_set_text(lbl_24hr, "24hr:");
-  lv_obj_align(lbl_24hr, LV_ALIGN_TOP_LEFT, 120, 48);
+  lv_label_set_text(lbl_24hr, strings->use_24hr);
+  lv_obj_set_style_text_font(lbl_24hr, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align(lbl_24hr, LV_ALIGN_TOP_LEFT, 120, 38);
 
   clock_24hr_switch = lv_switch_create(cont);
   lv_obj_align_to(clock_24hr_switch, lbl_24hr, LV_ALIGN_OUT_RIGHT_MID, 6, 0);
@@ -712,6 +920,23 @@ void create_settings_window() {
     lv_obj_clear_state(clock_24hr_switch, LV_STATE_CHECKED);
   }
   lv_obj_add_event_cb(clock_24hr_switch, settings_event_handler, LV_EVENT_VALUE_CHANGED, NULL);
+
+  // Language selection
+  lv_obj_t *lbl_lang = lv_label_create(cont);
+  lv_label_set_text(lbl_lang, strings->language_label);
+  lv_obj_set_style_text_font(lbl_lang, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align(lbl_lang, LV_ALIGN_TOP_LEFT, 0, 105);
+  
+  language_dropdown = lv_dropdown_create(cont);
+  lv_dropdown_set_options(language_dropdown, "English\nEspañol\nDeutsch\nFrançais");
+  lv_dropdown_set_selected(language_dropdown, current_language);
+  lv_obj_set_width(language_dropdown, 120);
+  lv_obj_set_style_text_font(language_dropdown, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_text_font(language_dropdown, get_font_12(), LV_PART_SELECTED | LV_STATE_DEFAULT);
+  lv_obj_t *list = lv_dropdown_get_list(language_dropdown);
+  lv_obj_set_style_text_font(list, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align_to(language_dropdown, lbl_lang, LV_ALIGN_OUT_RIGHT_MID, 10, 0);
+  lv_obj_add_event_cb(language_dropdown, settings_event_handler, LV_EVENT_VALUE_CHANGED, NULL);
 
   if (!kb) {
     kb = lv_keyboard_create(lv_scr_act());
@@ -726,11 +951,12 @@ void create_settings_window() {
   lv_obj_set_style_bg_color(btn_reset, lv_palette_darken(LV_PALETTE_RED, 1), LV_PART_MAIN | LV_STATE_PRESSED);
   lv_obj_set_style_text_color(btn_reset, lv_color_white(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_size(btn_reset, 100, 40);
-  lv_obj_align(btn_reset, LV_ALIGN_TOP_RIGHT, 0, 130);
+  lv_obj_align(btn_reset, LV_ALIGN_TOP_RIGHT, 0, 140);
   lv_obj_add_event_cb(btn_reset, reset_wifi_event_handler, LV_EVENT_CLICKED, nullptr);
 
   lv_obj_t *lbl_reset = lv_label_create(btn_reset);
-  lv_label_set_text(lbl_reset, "Reset Wi-Fi");
+  lv_label_set_text(lbl_reset, strings->reset_wifi);
+  lv_obj_set_style_text_font(lbl_reset, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_center(lbl_reset);
 
   btn_close_obj = lv_btn_create(cont);
@@ -739,7 +965,8 @@ void create_settings_window() {
   lv_obj_add_event_cb(btn_close_obj, settings_event_handler, LV_EVENT_CLICKED, NULL);
 
   lv_obj_t *lbl_btn = lv_label_create(btn_close_obj);
-  lv_label_set_text(lbl_btn, "Close");
+  lv_label_set_text(lbl_btn, strings->close);
+  lv_obj_set_style_text_font(lbl_btn, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_center(lbl_btn);
 }
 
@@ -755,9 +982,31 @@ static void settings_event_handler(lv_event_t *e) {
     use_24_hour = lv_obj_has_state(clock_24hr_switch, LV_STATE_CHECKED);
   }
 
+  if (tgt == language_dropdown && code == LV_EVENT_VALUE_CHANGED) {
+    current_language = (Language)lv_dropdown_get_selected(language_dropdown);
+    // Update the UI immediately to reflect language change
+    lv_obj_del(settings_win);
+    settings_win = nullptr;
+    
+    // Save preferences and recreate UI with new language
+    prefs.putBool("useFahrenheit", use_fahrenheit);
+    prefs.putBool("use24Hour", use_24_hour);
+    prefs.putUInt("language", current_language);
+    
+    lv_keyboard_set_textarea(kb, nullptr);
+    lv_obj_add_flag(kb, LV_OBJ_FLAG_HIDDEN);
+    
+    // Recreate the main UI with the new language
+    lv_obj_clean(lv_scr_act());
+    create_ui();
+    fetch_and_update_weather();
+    return;
+  }
+
   if (tgt == btn_close_obj && code == LV_EVENT_CLICKED) {
     prefs.putBool("useFahrenheit", use_fahrenheit);
     prefs.putBool("use24Hour", use_24_hour);
+    prefs.putUInt("language", current_language);
 
     lv_keyboard_set_textarea(kb, nullptr);
     lv_obj_add_flag(kb, LV_OBJ_FLAG_HIDDEN);
@@ -831,13 +1080,14 @@ void fetch_and_update_weather() {
       JsonArray tmax = doc["daily"]["temperature_2m_max"].as<JsonArray>();
       JsonArray weather_codes = doc["daily"]["weather_code"].as<JsonArray>();
 
+      const LocalizedStrings* strings = get_strings();
       for (int i = 0; i < 7; i++) {
         const char *date = times[i];
         int year = atoi(date + 0);
         int mon = atoi(date + 5);
         int dayd = atoi(date + 8);
         int dow = day_of_week(year, mon, dayd);
-        const char *dayStr = (i == 0) ? "Today" : weekdays[dow];
+        const char *dayStr = (i == 0 && current_language != LANG_FR) ? strings->today : strings->weekdays[dow];
 
         float mn = tmin[i].as<float>();
         float mx = tmax[i].as<float>();
@@ -870,8 +1120,8 @@ void fetch_and_update_weather() {
           temp = temp * 9.0 / 5.0 + 32.0;
         }
 
-        if (i == 0) {
-          lv_label_set_text(lbl_hourly[i], "Now");
+        if (i == 0 && current_language != LANG_FR) {
+          lv_label_set_text(lbl_hourly[i], strings->now);
         } else {
           lv_label_set_text(lbl_hourly[i], hour_name.c_str());
         }
