@@ -68,7 +68,7 @@ struct LocalizedStrings {
 };
 
 static const LocalizedStrings strings_en = {
-  "--°C", "Feels Like --°C", "SEVEN DAY FORECAST", "HOURLY FORECAST",
+  "--°C", "Feels Like", "SEVEN DAY FORECAST", "HOURLY FORECAST",
   "Today", "Now", "am", "pm", "Noon", "Invalid hour",
   "Brightness:", "Location:", "Use °F:", "24hr:",
   "Save", "Cancel", "Close", "Location", "Reset Wi-Fi",
@@ -96,7 +96,7 @@ static const LocalizedStrings strings_en = {
 };
 
 static const LocalizedStrings strings_es = {
-  "--°C", "Sensación --°C", "PRONÓSTICO 7 DÍAS", "PRONÓSTICO POR HORAS",
+  "--°C", "Sensación", "PRONÓSTICO 7 DÍAS", "PRONÓSTICO POR HORAS",
   "Hoy", "Ahora", "am", "pm", "Mediodía", "Hora inválida",
   "Brillo:", "Ubicación:", "Usar °F:", "24h:",
   "Guardar", "Cancelar", "Cerrar", "Ubicación", "Wi-Fi",
@@ -126,7 +126,7 @@ static const LocalizedStrings strings_es = {
 };
 
 static const LocalizedStrings strings_de = {
-  "--°C", "Gefühlt --°C", "7-TAGE VORHERSAGE", "STÜNDLICHE VORHERSAGE",
+  "--°C", "Gefühlt", "7-TAGE VORHERSAGE", "STÜNDLICHE VORHERSAGE",
   "Heute", "Jetzt", "", "", "Mittag", "Ungültige Stunde",
   "Helligkeit:", "Standort:", "°F:", "24h:",
   "Speichern", "Abbrechen", "Schließen", "Standort", "Wi-Fi",
@@ -158,7 +158,7 @@ static const LocalizedStrings strings_de = {
 };
 
 static const LocalizedStrings strings_fr = {
-  "--°C", "Ressenti --°C", "PRÉVISIONS 7 JOURS", "PRÉVISIONS HORAIRES",
+  "--°C", "Ressenti", "PRÉVISIONS 7 JOURS", "PRÉVISIONS HORAIRES",
   "Aujourd'hui", "Maintenant", "h", "h", "Midi", "Heure invalide",
   "Luminosité:", "Lieu:", "Utiliser °F:", "24h:",
   "Sauvegarder", "Annuler", "Fermer", "Lieu", "Wi-Fi",
@@ -1064,6 +1064,7 @@ void fetch_and_update_weather() {
         t_now = t_now * 9.0 / 5.0 + 32.0;
         t_ap = t_ap * 9.0 / 5.0 + 32.0;
       }
+      const LocalizedStrings* strings = get_strings();
 
       int utc_offset_seconds = doc["utc_offset_seconds"].as<int>();
       configTime(utc_offset_seconds, 0, "pool.ntp.org", "time.nist.gov");
@@ -1072,7 +1073,7 @@ void fetch_and_update_weather() {
 
       char unit = use_fahrenheit ? 'F' : 'C';
       lv_label_set_text_fmt(lbl_today_temp, "%.0f°%c", t_now, unit);
-      lv_label_set_text_fmt(lbl_today_feels_like, "Feels Like %.0f°%c", t_ap, unit);
+      lv_label_set_text_fmt(lbl_today_feels_like, "%s %.0f°%c", strings->feels_like_temp, t_ap, unit);
       lv_img_set_src(img_today_icon, choose_image(code_now, is_day));
 
       JsonArray times = doc["daily"]["time"].as<JsonArray>();
@@ -1080,7 +1081,6 @@ void fetch_and_update_weather() {
       JsonArray tmax = doc["daily"]["temperature_2m_max"].as<JsonArray>();
       JsonArray weather_codes = doc["daily"]["weather_code"].as<JsonArray>();
 
-      const LocalizedStrings* strings = get_strings();
       for (int i = 0; i < 7; i++) {
         const char *date = times[i];
         int year = atoi(date + 0);
