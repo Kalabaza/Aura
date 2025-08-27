@@ -32,7 +32,7 @@ LV_FONT_DECLARE(lv_font_montserrat_latin_20);
 LV_FONT_DECLARE(lv_font_montserrat_latin_42);
 
 // Language support
-enum Language { LANG_EN = 0, LANG_ES = 1, LANG_DE = 2, LANG_FR = 3 };
+enum Language { LANG_EN = 0, LANG_ES = 1, LANG_DE = 2, LANG_FR = 3, LANG_SV = 4 };
 static Language current_language = LANG_EN;
 
 struct LocalizedStrings {
@@ -189,11 +189,45 @@ static const LocalizedStrings strings_fr = {
   {"Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"}
 };
 
+static const LocalizedStrings strings_sv = {
+  "--°C", "Känns som", "7-DAGARS PROGNOS", "TIMPROGNOS",
+  "Idag", "Nu", "", "", "Middag", "Ogiltig timme",
+  "Ljusstyrka:", "Plats:", "Använd °F:", "24h:",
+  "Spara", "Avbryt", "Stäng", "Plats", "Återställ Wi-Fi",
+  "Återställ", "Ändra plats", "Aura-inställningar",
+  "Stad:", "Sökresultat", "t.ex. Stockholm",
+  "Wi-Fi-konfiguration:\n\n"
+  "Anslut din telefon\n"
+  "eller laptop till den\n"
+  "tillfälliga Wi-Fi-\n"
+  "åtkomstpunkten "
+  DEFAULT_CAPTIVE_SSID
+  "\n"
+  "för att konfigurera.\n\n"
+  "Om du inte ser en\n"
+  "konfigurationsskärm\n"
+  "efter anslutning, besök\n"
+  "http://192.168.4.1\n"
+  "i din webbläsare.",
+  "Är du säker på att du vill\n"
+  "återställa Wi-Fi-\n"
+  "autentiseringsuppgifter?\n\n"
+  "Du måste återansluta till\n"
+  "SSID " DEFAULT_CAPTIVE_SSID
+  " med din telefon eller\n"
+  "webbläsare för att\n"
+  "omkonfigurera Wi-Fi-\n"
+  "autentiseringsuppgifter.",
+  "Språk:",
+  {"Sön", "Mån", "Tis", "Ons", "Tor", "Fre", "Lör"}
+};
+
 static const LocalizedStrings* get_strings() {
   switch (current_language) {
     case LANG_ES: return &strings_es;
     case LANG_DE: return &strings_de;
     case LANG_FR: return &strings_fr;
+    case LANG_SV: return &strings_sv;
     default: return &strings_en;
   }
 }
@@ -928,7 +962,7 @@ void create_settings_window() {
   lv_obj_align(lbl_lang, LV_ALIGN_TOP_LEFT, 0, 105);
   
   language_dropdown = lv_dropdown_create(cont);
-  lv_dropdown_set_options(language_dropdown, "English\nEspañol\nDeutsch\nFrançais");
+  lv_dropdown_set_options(language_dropdown, "English\nEspañol\nDeutsch\nFrançais\nSvenska");
   lv_dropdown_set_selected(language_dropdown, current_language);
   lv_obj_set_width(language_dropdown, 120);
   lv_obj_set_style_text_font(language_dropdown, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
