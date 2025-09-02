@@ -32,7 +32,7 @@ LV_FONT_DECLARE(lv_font_montserrat_latin_20);
 LV_FONT_DECLARE(lv_font_montserrat_latin_42);
 
 // Language support
-enum Language { LANG_EN = 0, LANG_ES = 1, LANG_DE = 2, LANG_FR = 3, LANG_IT = 4 };
+enum Language { LANG_EN = 0, LANG_ES = 1, LANG_DE = 2, LANG_FR = 3 };
 static Language current_language = LANG_EN;
 
 struct LocalizedStrings {
@@ -189,40 +189,11 @@ static const LocalizedStrings strings_fr = {
   {"Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"}
 };
 
-static const LocalizedStrings strings_it = {
-  "--°C", "Si sente come", "PREVISIONI PROSSIMI SETTE GIORNI", "Previsioni per ora",
-  "Oggi", "Ora", "am", "pm", "Mezzogiorno", "Ora non valida",
-  "Luminosità:", "Posizione:", "Utilizzo °F:", "24hr:",
-  "Salva", "Cancellare", "Close", "Posizione", "Resetta Wi-Fi",
-  "Reset", "Cambia posizione", "Impostazioni aura",
-  "Città:", "Risultati di ricerca", "e.s. Londra",
-  "Configurazione Wi-Fi:\n\n"
-  "Per favore collega il tuo\n"
-  "smartphone o laptop\n"
-  "al Wi-Fi temporaneo\n "
-  DEFAULT_CAPTIVE_SSID
-  "\n"
-  "per configurare la rete.\n\n"
-  "Se non vedi la \n"
-  "Schermata di configurazione \n"
-  "dopo il collegamento,\n"
-  "visita http://192.168.4.1\n"
-  "sul tuo web browser.",
-  "Sei sicuro di voler ripristinare "
-  "le credenzili Wi-Fi ?\n\n"
-  "Dovrai riconnetterti al WiFi con SSID " DEFAULT_CAPTIVE_SSID
-  "con il tuo telefono o browser a "
-  "riconfigurare le credenziali Wi-Fi.",
-  "Lingua:",
-  {"Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"}
-};
-
 static const LocalizedStrings* get_strings() {
   switch (current_language) {
     case LANG_ES: return &strings_es;
     case LANG_DE: return &strings_de;
     case LANG_FR: return &strings_fr;
-    case LANG_IT: return &strings_it;
     default: return &strings_en;
   }
 }
@@ -957,7 +928,7 @@ void create_settings_window() {
   lv_obj_align(lbl_lang, LV_ALIGN_TOP_LEFT, 0, 105);
   
   language_dropdown = lv_dropdown_create(cont);
-  lv_dropdown_set_options(language_dropdown, "English\nEspañol\nDeutsch\nFrançais\nItaliano");
+  lv_dropdown_set_options(language_dropdown, "English\nEspañol\nDeutsch\nFrançais");
   lv_dropdown_set_selected(language_dropdown, current_language);
   lv_obj_set_width(language_dropdown, 120);
   lv_obj_set_style_text_font(language_dropdown, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
