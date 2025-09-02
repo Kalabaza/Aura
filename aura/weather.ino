@@ -32,7 +32,8 @@ LV_FONT_DECLARE(lv_font_montserrat_latin_20);
 LV_FONT_DECLARE(lv_font_montserrat_latin_42);
 
 // Language support
-enum Language { LANG_EN = 0, LANG_ES = 1, LANG_DE = 2, LANG_FR = 3, LANG_SV = 4 };
+enum Language { LANG_EN = 0, LANG_ES = 1, LANG_DE = 2, LANG_FR = 3, LANG_TR = 4, LANG_SV = 5 };
+
 static Language current_language = LANG_EN;
 
 struct LocalizedStrings {
@@ -222,11 +223,41 @@ static const LocalizedStrings strings_sv = {
   {"Sön", "Mån", "Tis", "Ons", "Tor", "Fre", "Lör"}
 };
 
+static const LocalizedStrings strings_tr = {
+  "--°C", "Hissedilen", "YEDI GÜNLÜK TAHMIN", "SAATLIK TAHMIN",
+  "Bugün", "Simdi", "öö", "ös", "Öğle", "Geçersiz saat",
+  "Parlaklik:", "Konum:", "°F Kullan:", "24 Saat:",
+  "Kaydet", "İptal", "Kapat", "Konum", "Wi-Fi Sifirla",
+  "Sifirla", "Konumu Değiştir", "Aura Ayarlari",
+  "Şehir:", "Arama Sonuçları", "örn. Londra",
+  "Wi-Fi Yapilandirmasi:\n\n"
+  "Lütfen telefonunuzu veya\n"
+  "bilgisayarinizi geçici Wi-Fi\n"
+  "erişim noktasina bağlayin "
+  DEFAULT_CAPTIVE_SSID
+  "\n"
+  "yapilandirmak için.\n\n"
+  "Bağlandiktan sonra bir\n"
+  "yapilandirma ekrani görmezseniz,\n"
+  "web tarayicinizda\n"
+  "http://192.168.4.1 adresine gidin.",
+  "Wi-Fi kimlik bilgilerini sifirlamak\n"
+  "istediğinizden emin misiniz?\n\n"
+  "Wi-Fi kimlik bilgilerini yeniden\n"
+  "yapilandirmak için telefonunuz veya\n"
+  "tarayiciniz ile " DEFAULT_CAPTIVE_SSID
+  " SSID’sine tekrar bağlanmaniz\n"
+  "gerekecek.",
+  "Dil:",
+  {"Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"}
+};
+
 static const LocalizedStrings* get_strings() {
   switch (current_language) {
     case LANG_ES: return &strings_es;
     case LANG_DE: return &strings_de;
     case LANG_FR: return &strings_fr;
+    case LANG_TR: return &strings_tr;
     case LANG_SV: return &strings_sv;
     default: return &strings_en;
   }
@@ -962,7 +993,7 @@ void create_settings_window() {
   lv_obj_align(lbl_lang, LV_ALIGN_TOP_LEFT, 0, 105);
   
   language_dropdown = lv_dropdown_create(cont);
-  lv_dropdown_set_options(language_dropdown, "English\nEspañol\nDeutsch\nFrançais\nSvenska");
+  lv_dropdown_set_options(language_dropdown, "English\nEspañol\nDeutsch\nFrançais\nTürkçe\nSvenska");
   lv_dropdown_set_selected(language_dropdown, current_language);
   lv_obj_set_width(language_dropdown, 120);
   lv_obj_set_style_text_font(language_dropdown, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
