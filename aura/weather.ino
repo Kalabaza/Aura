@@ -1130,7 +1130,19 @@ void do_geocode_query(const char *q) {
 }
 
 void fetch_and_update_weather() {
-  if (WiFi.status() != WL_CONNECTED) return;
+  if (WiFi.status() != WL_CONNECTED) {
+    Serial.println("WiFi no longer connected. Attempting to reconnect...");
+    WiFi.disconnect();
+    WiFiManager wm;  
+    wm.autoConnect(DEFAULT_CAPTIVE_SSID);
+    delay(1000);  
+    if (WiFi.status() != WL_CONNECTED) { 
+      Serial.println("WiFi connection still unavailable.");
+      return;   
+    }
+    Serial.println("WiFi connection reestablished.");
+  }
+
 
   String url = String("http://api.open-meteo.com/v1/forecast?latitude=")
                + latitude + "&longitude=" + longitude
