@@ -194,14 +194,14 @@ static const LocalizedStrings strings_sv = {
   "--°C", "Känns som", "7-DAGARS PROGNOS", "TIMPROGNOS",
   "Idag", "Nu", "", "", "Middag", "Ogiltig timme",
   "Ljusstyrka:", "Plats:", "Använd °F:", "24h:",
-  "Spara", "Avbryt", "Stäng", "Plats", "Återställ Wi-Fi",
-  "Återställ", "Ändra plats", "Aura-inställningar",
+  "Spara", "Avbryt", "Stäng", "Plats", "Aterställ Wi-Fi",
+  "Aterställ", "Andra plats", "Aura-inställningar",
   "Stad:", "Sökresultat", "t.ex. Stockholm",
   "Wi-Fi-konfiguration:\n\n"
   "Anslut din telefon\n"
   "eller laptop till den\n"
   "tillfälliga Wi-Fi-\n"
-  "åtkomstpunkten "
+  "atkomstpunkten "
   DEFAULT_CAPTIVE_SSID
   "\n"
   "för att konfigurera.\n\n"
@@ -210,17 +210,17 @@ static const LocalizedStrings strings_sv = {
   "efter anslutning, besök\n"
   "http://192.168.4.1\n"
   "i din webbläsare.",
-  "Är du säker på att du vill\n"
-  "återställa Wi-Fi-\n"
+  "Ar du säker pa att du vill\n"
+  "aterställa Wi-Fi-\n"
   "autentiseringsuppgifter?\n\n"
-  "Du måste återansluta till\n"
+  "Du maste ateransluta till\n"
   "SSID " DEFAULT_CAPTIVE_SSID
   " med din telefon eller\n"
   "webbläsare för att\n"
   "omkonfigurera Wi-Fi-\n"
   "autentiseringsuppgifter.",
-  "Språk:",
-  {"Sön", "Mån", "Tis", "Ons", "Tor", "Fre", "Lör"}
+  "Sprak:",
+  {"Sön", "Man", "Tis", "Ons", "Tor", "Fre", "Lör"}
 };
 
 static const LocalizedStrings strings_tr = {
@@ -246,15 +246,15 @@ static const LocalizedStrings strings_tr = {
   "Wi-Fi kimlik bilgilerini yeniden\n"
   "yapilandirmak için telefonunuz veya\n"
   "tarayiciniz ile " DEFAULT_CAPTIVE_SSID
-  " SSID’sine tekrar bağlanmaniz\n"
+  " SSID'sine tekrar bağlanmaniz\n"
   "gerekecek.",
   "Dil:",
   {"Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"}
 };
 
 static const LocalizedStrings strings_it = {
-  "--°C", "Si sente come", "PREVISIONI PROSSIMI SETTE GIORNI", "Previsioni per ora",
-  "Oggi", "Ora", "am", "pm", "Mezzogiorno", "Ora non valida",
+  "--°C", "Percepita", "PREVISIONI A 7 GIORNI", "PREVISIONI ORARIE",
+  "Oggi", "Ora", "am", "pm", "Mezzog.", "Ora non valida",
   "Luminosità:", "Posizione:", "Utilizzo °F:", "24hr:",
   "Salva", "Cancellare", "Close", "Posizione", "Resetta Wi-Fi",
   "Reset", "Cambia posizione", "Impostazioni aura",
@@ -1005,7 +1005,7 @@ void create_settings_window() {
   lv_obj_t *lbl_24hr = lv_label_create(cont);
   lv_label_set_text(lbl_24hr, strings->use_24hr);
   lv_obj_set_style_text_font(lbl_24hr, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_align(lbl_24hr, LV_ALIGN_TOP_LEFT, 120, 38);
+  lv_obj_align_to(lbl_24hr, unit_switch, LV_ALIGN_OUT_RIGHT_MID, 6, 0);
 
   clock_24hr_switch = lv_switch_create(cont);
   lv_obj_align_to(clock_24hr_switch, lbl_24hr, LV_ALIGN_OUT_RIGHT_MID, 6, 0);
