@@ -726,10 +726,11 @@ void create_location_dialog() {
 void create_settings_window() {
   if (settings_win) return;
 
-  int vertical_element_spacing = 20;
+  int vertical_element_spacing = 21;
 
   const LocalizedStrings* strings = get_strings(current_language);
   settings_win = lv_win_create(lv_scr_act());
+
   lv_obj_t *header = lv_win_get_header(settings_win);
   lv_obj_set_style_height(header, 30, 0);
 
