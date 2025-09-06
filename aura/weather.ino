@@ -8,6 +8,7 @@
 #include <XPT2046_Touchscreen.h>
 #include <Preferences.h>
 #include "esp_system.h"
+#include "translations.h"
 
 #define XPT2046_IRQ 36   // T_IRQ
 #define XPT2046_MOSI 32  // T_DIN
@@ -25,281 +26,17 @@
 #define DEFAULT_CAPTIVE_SSID "Aura"
 #define UPDATE_INTERVAL 600000UL  // 10 minutes
 
+// Night mode starts at 10pm and ends at 6am
+#define NIGHT_MODE_START_HOUR 22
+#define NIGHT_MODE_END_HOUR 6
+
 LV_FONT_DECLARE(lv_font_montserrat_latin_12);
 LV_FONT_DECLARE(lv_font_montserrat_latin_14);
 LV_FONT_DECLARE(lv_font_montserrat_latin_16);
 LV_FONT_DECLARE(lv_font_montserrat_latin_20);
 LV_FONT_DECLARE(lv_font_montserrat_latin_42);
 
-// Language support
-enum Language { LANG_EN = 0, LANG_ES = 1, LANG_DE = 2, LANG_FR = 3, LANG_TR = 4, LANG_SV = 5, LANG_IT = 6 };
-
 static Language current_language = LANG_EN;
-
-struct LocalizedStrings {
-  const char* temp_placeholder;
-  const char* feels_like_temp;
-  const char* seven_day_forecast;
-  const char* hourly_forecast;
-  const char* today;
-  const char* now;
-  const char* am;
-  const char* pm;
-  const char* noon;
-  const char* invalid_hour;
-  const char* brightness;
-  const char* location;
-  const char* use_fahrenheit;
-  const char* use_24hr;
-  const char* save;
-  const char* cancel;
-  const char* close;
-  const char* location_btn;
-  const char* reset_wifi;
-  const char* reset;
-  const char* change_location;
-  const char* aura_settings;
-  const char* city;
-  const char* search_results;
-  const char* city_placeholder;
-  const char* wifi_config;
-  const char* reset_confirmation;
-  const char* language_label;
-  const char* weekdays[7];
-  const char* use_night_mode;
-};
-
-static const LocalizedStrings strings_en = {
-  "--°C", "Feels Like", "SEVEN DAY FORECAST", "HOURLY FORECAST",
-  "Today", "Now", "am", "pm", "Noon", "Invalid hour",
-  "Brightness:", "Location:", "Use °F:", "24hr:",
-  "Save", "Cancel", "Close", "Location", "Reset Wi-Fi",
-  "Reset", "Change Location", "Aura Settings",
-  "City:", "Search Results", "e.g. London",
-  "Wi-Fi Configuration:\n\n"
-  "Please connect your\n"
-  "phone or laptop to the\n"
-  "temporary Wi-Fi access\n point "
-  DEFAULT_CAPTIVE_SSID
-  "\n"
-  "to configure.\n\n"
-  "If you don't see a \n"
-  "configuration screen \n"
-  "after connecting,\n"
-  "visit http://192.168.4.1\n"
-  "in your web browser.",
-  "Are you sure you want to reset "
-  "Wi-Fi credentials?\n\n"
-  "You'll need to reconnect to the Wifi SSID " DEFAULT_CAPTIVE_SSID
-  " with your phone or browser to "
-  "reconfigure Wi-Fi credentials.",
-  "Language:",
-  {"Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"},
-  "Dim screen at night"
-};
-
-static const LocalizedStrings strings_es = {
-  "--°C", "Sensación", "PRONÓSTICO 7 DÍAS", "PRONÓSTICO POR HORAS",
-  "Hoy", "Ahora", "am", "pm", "Mediodía", "Hora inválida",
-  "Brillo:", "Ubicación:", "Usar °F:", "24h:",
-  "Guardar", "Cancelar", "Cerrar", "Ubicación", "Wi-Fi",
-  "Restablecer", "Cambiar Ubicación", "Configuración Aura",
-  "Ciudad:", "Resultados de Búsqueda", "ej. Madrid",
-  "Configuración Wi-Fi:\n\n"
-  "Conecte su teléfono\n"
-  "o portátil al punto de\n"
-  "acceso Wi-Fi temporal\n"
-  DEFAULT_CAPTIVE_SSID
-  "\n"
-  "para configurar.\n\n"
-  "Si no ve una pantalla\n"
-  "de configuración después\n"
-  "de conectarse, visite\n"
-  "http://192.168.4.1\n"
-  "en su navegador.",
-  "¿Está seguro de que desea\n"
-  "restablecer las credenciales\n"
-  "Wi-Fi?\n\n"
-  "Deberá reconectarse al SSID " DEFAULT_CAPTIVE_SSID
-  " con su teléfono o navegador\n"
-  "para reconfigurar las\n"
-  "credenciales Wi-Fi.",
-  "Idioma:",
-  {"Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"},
-  "Pantalla noche"
-};
-
-static const LocalizedStrings strings_de = {
-  "--°C", "Gefühlt", "7-TAGE VORHERSAGE", "STÜNDLICHE VORHERSAGE",
-  "Heute", "Jetzt", "", "", "Mittag", "Ungültige Stunde",
-  "Helligkeit:", "Standort:", "°F:", "24h:",
-  "Speichern", "Abbrechen", "Schließen", "Standort", "Wi-Fi",
-  "Zurücksetzen", "Standort ändern", "Aura Einstellungen",
-  "Stadt:", "Suchergebnisse", "z.B. Berlin",
-  "Wi-Fi Konfiguration:\n\n"
-  "Verbinden Sie Ihr Telefon\n"
-  "oder Laptop mit dem\n"
-  "temporären Wi-Fi\n"
-  "Zugangspunkt "
-  DEFAULT_CAPTIVE_SSID
-  "\n"
-  "zum Konfigurieren.\n\n"
-  "Wenn Sie keinen\n"
-  "Konfigurationsbildschirm\n"
-  "sehen, besuchen Sie\n"
-  "http://192.168.4.1\n"
-  "in Ihrem Browser.",
-  "Sind Sie sicher, dass Sie\n"
-  "die Wi-Fi Zugangsdaten\n"
-  "zurücksetzen möchten?\n\n"
-  "Sie müssen sich erneut mit\n"
-  "der SSID " DEFAULT_CAPTIVE_SSID
-  " verbinden, um die\n"
-  "Wi-Fi Zugangsdaten\n"
-  "neu zu konfigurieren.",
-  "Sprache:",
-  {"So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"},
-  "Nacht-Dimmen"
-};
-
-static const LocalizedStrings strings_fr = {
-  "--°C", "Ressenti", "PRÉVISIONS 7 JOURS", "PRÉVISIONS HORAIRES",
-  "Aujourd'hui", "Maintenant", "h", "h", "Midi", "Heure invalide",
-  "Luminosité:", "Lieu:", "Utiliser °F:", "24h:",
-  "Sauvegarder", "Annuler", "Fermer", "Lieu", "Wi-Fi",
-  "Réinitialiser", "Changer de lieu", "Paramètres Aura",
-  "Ville:", "Résultats de recherche", "ex. Paris",
-  "Configuration Wi-Fi:\n\n"
-  "Connectez votre téléphone\n"
-  "ou ordinateur portable au\n"
-  "point d'accès Wi-Fi\n"
-  "temporaire "
-  DEFAULT_CAPTIVE_SSID
-  "\n"
-  "pour configurer.\n\n"
-  "Si vous ne voyez pas\n"
-  "d'écran de configuration\n"
-  "après connexion, visitez\n"
-  "http://192.168.4.1\n"
-  "dans votre navigateur.",
-  "Êtes-vous sûr de vouloir\n"
-  "réinitialiser les\n"
-  "identifiants Wi-Fi?\n\n"
-  "Vous devrez vous reconnecter\n"
-  "au SSID " DEFAULT_CAPTIVE_SSID
-  " avec votre téléphone ou\n"
-  "navigateur pour reconfigurer\n"
-  "les identifiants Wi-Fi.",
-  "Langue:",
-  {"Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"},
-  "Nuit écran"
-};
-
-static const LocalizedStrings strings_tr = {
-  "--°C", "Hissedilen", "YEDI GÜNLÜK TAHMIN", "SAATLIK TAHMIN",
-  "Bugün", "Simdi", "öö", "ös", "Öğle", "Geçersiz saat",
-  "Parlaklik:", "Konum:", "°F Kullan:", "24 Saat:",
-  "Kaydet", "İptal", "Kapat", "Konum", "Wi-Fi Sifirla",
-  "Sifirla", "Konumu Değiştir", "Aura Ayarlari",
-  "Şehir:", "Arama Sonuçları", "örn. Londra",
-  "Wi-Fi Yapilandirmasi:\n\n"
-  "Lütfen telefonunuzu veya\n"
-  "bilgisayarinizi geçici Wi-Fi\n"
-  "erişim noktasina bağlayin "
-  DEFAULT_CAPTIVE_SSID
-  "\n"
-  "yapilandirmak için.\n\n"
-  "Bağlandiktan sonra bir\n"
-  "yapilandirma ekrani görmezseniz,\n"
-  "web tarayicinizda\n"
-  "http://192.168.4.1 adresine gidin.",
-  "Wi-Fi kimlik bilgilerini sifirlamak\n"
-  "istediğinizden emin misiniz?\n\n"
-  "Wi-Fi kimlik bilgilerini yeniden\n"
-  "yapilandirmak için telefonunuz veya\n"
-  "tarayiciniz ile " DEFAULT_CAPTIVE_SSID
-  " SSID'sine tekrar bağlanmaniz\n"
-  "gerekecek.",
-  "Dil:",
-  {"Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"},
-  "Gece kısık"
-};
-
-static const LocalizedStrings strings_sv = {
-  "--°C", "Känns som", "7-DAGARS PROGNOS", "TIMPROGNOS",
-  "Idag", "Nu", "", "", "Middag", "Ogiltig timme",
-  "Ljusstyrka:", "Plats:", "Använd °F:", "24h:",
-  "Spara", "Avbryt", "Stäng", "Plats", "Aterställ Wi-Fi",
-  "Aterställ", "Andra plats", "Aura-inställningar",
-  "Stad:", "Sökresultat", "t.ex. Stockholm",
-  "Wi-Fi-konfiguration:\n\n"
-  "Anslut din telefon\n"
-  "eller laptop till den\n"
-  "tillfälliga Wi-Fi-\n"
-  "atkomstpunkten "
-  DEFAULT_CAPTIVE_SSID
-  "\n"
-  "för att konfigurera.\n\n"
-  "Om du inte ser en\n"
-  "konfigurationsskärm\n"
-  "efter anslutning, besök\n"
-  "http://192.168.4.1\n"
-  "i din webbläsare.",
-  "Ar du säker pa att du vill\n"
-  "aterställa Wi-Fi-\n"
-  "autentiseringsuppgifter?\n\n"
-  "Du maste ateransluta till\n"
-  "SSID " DEFAULT_CAPTIVE_SSID
-  " med din telefon eller\n"
-  "webbläsare för att\n"
-  "omkonfigurera Wi-Fi-\n"
-  "autentiseringsuppgifter.",
-  "Sprak:",
-  {"Sön", "Man", "Tis", "Ons", "Tor", "Fre", "Lör"},
-  "Nattdämpning"
-};
-
-static const LocalizedStrings strings_it = {
-  "--°C", "Percepita", "PREVISIONI A 7 GIORNI", "PREVISIONI ORARIE",
-  "Oggi", "Ora", "am", "pm", "Mezzog.", "Ora non valida",
-  "Luminosità:", "Posizione:", "Utilizzo °F:", "24hr:",
-  "Salva", "Cancellare", "Close", "Posizione", "Resetta Wi-Fi",
-  "Reset", "Cambia posizione", "Impostazioni aura",
-  "Città:", "Risultati di ricerca", "e.s. Londra",
-  "Configurazione Wi-Fi:\n\n"
-  "Per favore collega il tuo\n"
-  "smartphone o laptop\n"
-  "al Wi-Fi temporaneo\n "
-  DEFAULT_CAPTIVE_SSID
-  "\n"
-  "per configurare la rete.\n\n"
-  "Se non vedi la \n"
-  "Schermata di configurazione \n"
-  "dopo il collegamento,\n"
-  "visita http://192.168.4.1\n"
-  "sul tuo web browser.",
-  "Sei sicuro di voler ripristinare "
-  "le credenzili Wi-Fi ?\n\n"
-  "Dovrai riconnetterti al WiFi con SSID " DEFAULT_CAPTIVE_SSID
-  "con il tuo telefono o browser a "
-  "riconfigurare le credenziali Wi-Fi.",
-  "Lingua:",
-  {"Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"},
-  "Schermo notte"
-};
-
-
-static const LocalizedStrings* get_strings() {
-  switch (current_language) {
-    case LANG_ES: return &strings_es;
-    case LANG_DE: return &strings_de;
-    case LANG_FR: return &strings_fr;
-    case LANG_TR: return &strings_tr;
-    case LANG_SV: return &strings_sv;
-    case LANG_IT: return &strings_it;
-    default: return &strings_en;
-  }
-}
 
 // Font selection based on language
 const lv_font_t* get_font_12() {
@@ -452,7 +189,7 @@ int day_of_week(int y, int m, int d) {
 }
 
 String hour_of_day(int hour) {
-  const LocalizedStrings* strings = get_strings();
+  const LocalizedStrings* strings = get_strings(current_language);
   if(hour < 0 || hour > 23) return String(strings->invalid_hour);
 
   if (use_24_hour) {
@@ -497,7 +234,7 @@ static void update_clock(lv_timer_t *timer) {
 
   if (!getLocalTime(&timeinfo)) return;
 
-  const LocalizedStrings* strings = get_strings();
+  const LocalizedStrings* strings = get_strings(current_language);
   char buf[16];
   if (use_24_hour) {
     snprintf(buf, sizeof(buf), "%02d:%02d", timeinfo.tm_hour, timeinfo.tm_min);
@@ -654,7 +391,7 @@ void wifi_splash_screen() {
   lv_obj_set_style_bg_grad_dir(scr, LV_GRAD_DIR_VER, LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-  const LocalizedStrings* strings = get_strings();
+  const LocalizedStrings* strings = get_strings(current_language);
   lv_obj_t *lbl = lv_label_create(scr);
   lv_label_set_text(lbl, strings->wifi_config);
   lv_obj_set_style_text_font(lbl, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -682,7 +419,7 @@ void create_ui() {
   lv_style_set_text_color(&default_label_style, lv_color_hex(0xFFFFFF));
   lv_style_set_text_opa(&default_label_style, LV_OPA_COVER);
 
-  const LocalizedStrings* strings = get_strings();
+  const LocalizedStrings* strings = get_strings(current_language);
 
   lbl_today_temp = lv_label_create(scr);
   lv_label_set_text(lbl_today_temp, strings->temp_placeholder);
@@ -850,14 +587,14 @@ void screen_event_cb(lv_event_t *e) {
 }
 
 void daily_cb(lv_event_t *e) {
-  const LocalizedStrings* strings = get_strings();
+  const LocalizedStrings* strings = get_strings(current_language);
   lv_obj_add_flag(box_daily, LV_OBJ_FLAG_HIDDEN);
   lv_label_set_text(lbl_forecast, strings->hourly_forecast);
   lv_obj_clear_flag(box_hourly, LV_OBJ_FLAG_HIDDEN);
 }
 
 void hourly_cb(lv_event_t *e) {
-  const LocalizedStrings* strings = get_strings();
+  const LocalizedStrings* strings = get_strings(current_language);
   lv_obj_add_flag(box_hourly, LV_OBJ_FLAG_HIDDEN);
   lv_label_set_text(lbl_forecast, strings->seven_day_forecast);
   lv_obj_clear_flag(box_daily, LV_OBJ_FLAG_HIDDEN);
@@ -865,7 +602,7 @@ void hourly_cb(lv_event_t *e) {
 
 
 static void reset_wifi_event_handler(lv_event_t *e) {
-  const LocalizedStrings* strings = get_strings();
+  const LocalizedStrings* strings = get_strings(current_language);
   lv_obj_t *mbox = lv_msgbox_create(lv_scr_act());
   lv_obj_t *title = lv_msgbox_add_title(mbox, strings->reset);
   lv_obj_set_style_margin_left(title, 10, 0);
@@ -917,7 +654,7 @@ static void change_location_event_cb(lv_event_t *e) {
 }
 
 void create_location_dialog() {
-  const LocalizedStrings* strings = get_strings();
+  const LocalizedStrings* strings = get_strings(current_language);
   location_win = lv_win_create(lv_scr_act());
   lv_obj_t *title = lv_win_add_title(location_win, strings->change_location);
   lv_obj_t *header = lv_win_get_header(location_win);
@@ -991,7 +728,7 @@ void create_settings_window() {
 
   int vertical_element_spacing = 20;
 
-  const LocalizedStrings* strings = get_strings();
+  const LocalizedStrings* strings = get_strings(current_language);
   settings_win = lv_win_create(lv_scr_act());
   lv_obj_t *header = lv_win_get_header(settings_win);
   lv_obj_set_style_height(header, 30, 0);
@@ -1207,10 +944,7 @@ bool night_mode_should_be_active() {
   if (!use_night_mode) return false;
   
   int hour = timeinfo.tm_hour;
-  // Screen should be dimmed between 10pm (22:00) and 6am (06:00)
-  Serial.print("Screen should be dimmed? ");
-  Serial.println((hour >= 11 || hour < 6));
-  return (hour >= 11 || hour < 6);
+  return (hour >= NIGHT_MODE_START_HOUR || hour < NIGHT_MODE_END_HOUR);
 }
 
 void activate_night_mode() {
@@ -1311,7 +1045,7 @@ void fetch_and_update_weather() {
         t_now = t_now * 9.0 / 5.0 + 32.0;
         t_ap = t_ap * 9.0 / 5.0 + 32.0;
       }
-      const LocalizedStrings* strings = get_strings();
+      const LocalizedStrings* strings = get_strings(current_language);
 
       int utc_offset_seconds = doc["utc_offset_seconds"].as<int>();
       configTime(utc_offset_seconds, 0, "pool.ntp.org", "time.nist.gov");
