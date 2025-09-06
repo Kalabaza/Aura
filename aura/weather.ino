@@ -66,6 +66,7 @@ struct LocalizedStrings {
   const char* reset_confirmation;
   const char* language_label;
   const char* weekdays[7];
+  const char* use_night_mode;
 };
 
 static const LocalizedStrings strings_en = {
@@ -93,7 +94,8 @@ static const LocalizedStrings strings_en = {
   " with your phone or browser to "
   "reconfigure Wi-Fi credentials.",
   "Language:",
-  {"Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"}
+  {"Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"},
+  "Dim screen at night"
 };
 
 static const LocalizedStrings strings_es = {
@@ -123,7 +125,8 @@ static const LocalizedStrings strings_es = {
   "para reconfigurar las\n"
   "credenciales Wi-Fi.",
   "Idioma:",
-  {"Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"}
+  {"Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"},
+  "Pantalla noche"
 };
 
 static const LocalizedStrings strings_de = {
@@ -155,7 +158,8 @@ static const LocalizedStrings strings_de = {
   "Wi-Fi Zugangsdaten\n"
   "neu zu konfigurieren.",
   "Sprache:",
-  {"So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"}
+  {"So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"},
+  "Nacht-Dimmen"
 };
 
 static const LocalizedStrings strings_fr = {
@@ -187,7 +191,38 @@ static const LocalizedStrings strings_fr = {
   "navigateur pour reconfigurer\n"
   "les identifiants Wi-Fi.",
   "Langue:",
-  {"Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"}
+  {"Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"},
+  "Nuit écran"
+};
+
+static const LocalizedStrings strings_tr = {
+  "--°C", "Hissedilen", "YEDI GÜNLÜK TAHMIN", "SAATLIK TAHMIN",
+  "Bugün", "Simdi", "öö", "ös", "Öğle", "Geçersiz saat",
+  "Parlaklik:", "Konum:", "°F Kullan:", "24 Saat:",
+  "Kaydet", "İptal", "Kapat", "Konum", "Wi-Fi Sifirla",
+  "Sifirla", "Konumu Değiştir", "Aura Ayarlari",
+  "Şehir:", "Arama Sonuçları", "örn. Londra",
+  "Wi-Fi Yapilandirmasi:\n\n"
+  "Lütfen telefonunuzu veya\n"
+  "bilgisayarinizi geçici Wi-Fi\n"
+  "erişim noktasina bağlayin "
+  DEFAULT_CAPTIVE_SSID
+  "\n"
+  "yapilandirmak için.\n\n"
+  "Bağlandiktan sonra bir\n"
+  "yapilandirma ekrani görmezseniz,\n"
+  "web tarayicinizda\n"
+  "http://192.168.4.1 adresine gidin.",
+  "Wi-Fi kimlik bilgilerini sifirlamak\n"
+  "istediğinizden emin misiniz?\n\n"
+  "Wi-Fi kimlik bilgilerini yeniden\n"
+  "yapilandirmak için telefonunuz veya\n"
+  "tarayiciniz ile " DEFAULT_CAPTIVE_SSID
+  " SSID'sine tekrar bağlanmaniz\n"
+  "gerekecek.",
+  "Dil:",
+  {"Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"},
+  "Gece kısık"
 };
 
 static const LocalizedStrings strings_sv = {
@@ -220,36 +255,8 @@ static const LocalizedStrings strings_sv = {
   "omkonfigurera Wi-Fi-\n"
   "autentiseringsuppgifter.",
   "Sprak:",
-  {"Sön", "Man", "Tis", "Ons", "Tor", "Fre", "Lör"}
-};
-
-static const LocalizedStrings strings_tr = {
-  "--°C", "Hissedilen", "YEDI GÜNLÜK TAHMIN", "SAATLIK TAHMIN",
-  "Bugün", "Simdi", "öö", "ös", "Öğle", "Geçersiz saat",
-  "Parlaklik:", "Konum:", "°F Kullan:", "24 Saat:",
-  "Kaydet", "İptal", "Kapat", "Konum", "Wi-Fi Sifirla",
-  "Sifirla", "Konumu Değiştir", "Aura Ayarlari",
-  "Şehir:", "Arama Sonuçları", "örn. Londra",
-  "Wi-Fi Yapilandirmasi:\n\n"
-  "Lütfen telefonunuzu veya\n"
-  "bilgisayarinizi geçici Wi-Fi\n"
-  "erişim noktasina bağlayin "
-  DEFAULT_CAPTIVE_SSID
-  "\n"
-  "yapilandirmak için.\n\n"
-  "Bağlandiktan sonra bir\n"
-  "yapilandirma ekrani görmezseniz,\n"
-  "web tarayicinizda\n"
-  "http://192.168.4.1 adresine gidin.",
-  "Wi-Fi kimlik bilgilerini sifirlamak\n"
-  "istediğinizden emin misiniz?\n\n"
-  "Wi-Fi kimlik bilgilerini yeniden\n"
-  "yapilandirmak için telefonunuz veya\n"
-  "tarayiciniz ile " DEFAULT_CAPTIVE_SSID
-  " SSID'sine tekrar bağlanmaniz\n"
-  "gerekecek.",
-  "Dil:",
-  {"Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"}
+  {"Sön", "Man", "Tis", "Ons", "Tor", "Fre", "Lör"},
+  "Nattdämpning"
 };
 
 static const LocalizedStrings strings_it = {
@@ -277,7 +284,8 @@ static const LocalizedStrings strings_it = {
   "con il tuo telefono o browser a "
   "riconfigurare le credenziali Wi-Fi.",
   "Lingua:",
-  {"Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"}
+  {"Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"},
+  "Schermo notte"
 };
 
 
@@ -322,13 +330,19 @@ int x, y, z;
 // Preferences
 static Preferences prefs;
 static bool use_fahrenheit = false;
-static bool use_24_hour = false; // Add this global variable
+static bool use_24_hour = false; 
+static bool use_night_mode = false;
 static char latitude[16] = LATITUDE_DEFAULT;
 static char longitude[16] = LONGITUDE_DEFAULT;
 static String location = String(LOCATION_DEFAULT);
 static char dd_opts[512];
 static DynamicJsonDocument geoDoc(8 * 1024);
 static JsonArray geoResults;
+
+// Screen dimming variables
+static bool night_mode_active = false;
+static bool temp_screen_wakeup_active = false;
+static lv_timer_t *temp_screen_wakeup_timer = nullptr;
 
 // UI components
 static lv_obj_t *lbl_today_temp;
@@ -355,6 +369,7 @@ static lv_obj_t *settings_win;
 static lv_obj_t *location_win = nullptr;
 static lv_obj_t *unit_switch;
 static lv_obj_t *clock_24hr_switch;
+static lv_obj_t *night_mode_switch;
 static lv_obj_t *language_dropdown;
 static lv_obj_t *lbl_clock;
 
@@ -422,6 +437,13 @@ static void settings_event_handler(lv_event_t *e);
 const lv_img_dsc_t *choose_image(int wmo_code, int is_day);
 const lv_img_dsc_t *choose_icon(int wmo_code, int is_day);
 
+// Screen dimming functions
+bool night_mode_should_be_active();
+void activate_night_mode();
+void deactivate_night_mode();
+void check_for_night_mode();
+void handle_temp_screen_wakeup_timeout(lv_timer_t *timer);
+
 
 int day_of_week(int y, int m, int d) {
   static const int t[] = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 };
@@ -470,6 +492,9 @@ String urlencode(const String &str) {
 
 static void update_clock(lv_timer_t *timer) {
   struct tm timeinfo;
+
+  check_for_night_mode();
+
   if (!getLocalTime(&timeinfo)) return;
 
   const LocalizedStrings* strings = get_strings();
@@ -519,6 +544,28 @@ void touchscreen_read(lv_indev_t *indev, lv_indev_data_t *data) {
     y = map(p.y, 240, 3800, 1, SCREEN_HEIGHT);
     z = p.z;
 
+    // Handle touch during dimmed screen
+    if (night_mode_active) {
+      // Temporarily wake the screen for 15 seconds
+      analogWrite(LCD_BACKLIGHT_PIN, prefs.getUInt("brightness", 128));
+    
+      if (temp_screen_wakeup_timer) {
+        lv_timer_del(temp_screen_wakeup_timer);
+      }
+      temp_screen_wakeup_timer = lv_timer_create(handle_temp_screen_wakeup_timeout, 15000, NULL);
+      lv_timer_set_repeat_count(temp_screen_wakeup_timer, 1); // Run only once
+      Serial.println("Woke up screen. Setting timer to turn of screen after 15 seconds of inactivity.");
+
+      if (!temp_screen_wakeup_active) {
+          // If this is the wake-up tap, don't pass this touch to the UI - just undim the screen
+          temp_screen_wakeup_active = true;
+          data->state = LV_INDEV_STATE_RELEASED;
+          return;
+      }
+
+      temp_screen_wakeup_active = true;
+    }
+
     data->state = LV_INDEV_STATE_PRESSED;
     data->point.x = x;
     data->point.y = y;
@@ -555,6 +602,7 @@ void setup() {
   lon.toCharArray(longitude, sizeof(longitude));
   use_fahrenheit = prefs.getBool("useFahrenheit", false);
   location = prefs.getString("location", LOCATION_DEFAULT);
+  use_night_mode = prefs.getBool("useNightMode", false);
   uint32_t brightness = prefs.getUInt("brightness", 255);
   use_24_hour = prefs.getBool("use24Hour", false);
   current_language = (Language)prefs.getUInt("language", LANG_EN);
@@ -733,7 +781,7 @@ void create_ui() {
   lv_obj_set_style_text_font(lbl_clock, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_text_color(lbl_clock, lv_color_hex(0xb9ecff), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_label_set_text(lbl_clock, "");
-  lv_obj_align(lbl_clock, LV_ALIGN_TOP_RIGHT, -10, 5);
+  lv_obj_align(lbl_clock, LV_ALIGN_TOP_RIGHT, -10, 2);
 }
 
 void populate_results_dropdown() {
@@ -821,7 +869,7 @@ static void reset_wifi_event_handler(lv_event_t *e) {
   lv_obj_t *mbox = lv_msgbox_create(lv_scr_act());
   lv_obj_t *title = lv_msgbox_add_title(mbox, strings->reset);
   lv_obj_set_style_margin_left(title, 10, 0);
-  lv_obj_set_style_text_font(title, get_font_20(), 0);
+  lv_obj_set_style_text_font(title, get_font_16(), 0);
 
   lv_obj_t *text = lv_msgbox_add_text(mbox, strings->reset_confirmation);
   lv_obj_set_style_text_font(text, get_font_12(), 0);
@@ -872,7 +920,9 @@ void create_location_dialog() {
   const LocalizedStrings* strings = get_strings();
   location_win = lv_win_create(lv_scr_act());
   lv_obj_t *title = lv_win_add_title(location_win, strings->change_location);
-  lv_obj_set_style_text_font(title, get_font_20(), 0);
+  lv_obj_t *header = lv_win_get_header(location_win);
+  lv_obj_set_style_height(header, 30, 0);
+  lv_obj_set_style_text_font(title, get_font_16(), 0);
   lv_obj_set_style_margin_left(title, 10, 0);
   lv_obj_set_size(location_win, 240, 320);
   lv_obj_center(location_win);
@@ -939,10 +989,15 @@ void create_location_dialog() {
 void create_settings_window() {
   if (settings_win) return;
 
+  int vertical_element_spacing = 20;
+
   const LocalizedStrings* strings = get_strings();
   settings_win = lv_win_create(lv_scr_act());
+  lv_obj_t *header = lv_win_get_header(settings_win);
+  lv_obj_set_style_height(header, 30, 0);
+
   lv_obj_t *title = lv_win_add_title(settings_win, strings->aura_settings);
-  lv_obj_set_style_text_font(title, get_font_20(), 0);
+  lv_obj_set_style_text_font(title, get_font_16(), 0);
   lv_obj_set_style_margin_left(title, 10, 0);
 
   lv_obj_center(settings_win);
@@ -969,29 +1024,26 @@ void create_settings_window() {
     prefs.putUInt("brightness", v);
   }, LV_EVENT_VALUE_CHANGED, NULL);
 
-  lv_obj_t *lbl_loc_l = lv_label_create(cont);
-  lv_label_set_text(lbl_loc_l, strings->location);
-  lv_obj_set_style_text_font(lbl_loc_l, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_align(lbl_loc_l, LV_ALIGN_TOP_LEFT, 0, 70);
+  // 'Night mode' switch
+  lv_obj_t *lbl_night_mode = lv_label_create(cont);
+  lv_label_set_text(lbl_night_mode, strings->use_night_mode);
+  lv_obj_set_style_text_font(lbl_night_mode, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align_to(lbl_night_mode, lbl_b, LV_ALIGN_OUT_BOTTOM_LEFT, 0, vertical_element_spacing);
 
-  lbl_loc = lv_label_create(cont);
-  lv_label_set_text(lbl_loc, location.c_str());
-  lv_obj_set_style_text_font(lbl_loc, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_align_to(lbl_loc, lbl_loc_l, LV_ALIGN_OUT_RIGHT_MID, 5, 0);
+  night_mode_switch = lv_switch_create(cont);
+  lv_obj_align_to(night_mode_switch, lbl_night_mode, LV_ALIGN_OUT_RIGHT_MID, 6, 0);
+  if (use_night_mode) {
+    lv_obj_add_state(night_mode_switch, LV_STATE_CHECKED);
+  } else {
+    lv_obj_remove_state(night_mode_switch, LV_STATE_CHECKED);
+  }
+  lv_obj_add_event_cb(night_mode_switch, settings_event_handler, LV_EVENT_VALUE_CHANGED, NULL);
 
-  lv_obj_t *btn_change_loc = lv_btn_create(cont);
-  lv_obj_align(btn_change_loc, LV_ALIGN_TOP_LEFT, 0, 140);
-  lv_obj_set_size(btn_change_loc, 100, 40);
-  lv_obj_add_event_cb(btn_change_loc, change_location_event_cb, LV_EVENT_CLICKED, NULL);
-  lv_obj_t *lbl_chg = lv_label_create(btn_change_loc);
-  lv_label_set_text(lbl_chg, strings->location_btn);
-  lv_obj_set_style_text_font(lbl_chg, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_center(lbl_chg);
-
+  // 'Use F' switch
   lv_obj_t *lbl_u = lv_label_create(cont);
   lv_label_set_text(lbl_u, strings->use_fahrenheit);
   lv_obj_set_style_text_font(lbl_u, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_align(lbl_u, LV_ALIGN_TOP_LEFT, 0, 38);
+  lv_obj_align_to(lbl_u, lbl_night_mode, LV_ALIGN_OUT_BOTTOM_LEFT, 0, vertical_element_spacing);
 
   unit_switch = lv_switch_create(cont);
   lv_obj_align_to(unit_switch, lbl_u, LV_ALIGN_OUT_RIGHT_MID, 6, 0);
@@ -1002,6 +1054,7 @@ void create_settings_window() {
   }
   lv_obj_add_event_cb(unit_switch, settings_event_handler, LV_EVENT_VALUE_CHANGED, NULL);
 
+  // 24-hr time switch
   lv_obj_t *lbl_24hr = lv_label_create(cont);
   lv_label_set_text(lbl_24hr, strings->use_24hr);
   lv_obj_set_style_text_font(lbl_24hr, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1016,12 +1069,23 @@ void create_settings_window() {
   }
   lv_obj_add_event_cb(clock_24hr_switch, settings_event_handler, LV_EVENT_VALUE_CHANGED, NULL);
 
+  // Current Location label
+  lv_obj_t *lbl_loc_l = lv_label_create(cont);
+  lv_label_set_text(lbl_loc_l, strings->location);
+  lv_obj_set_style_text_font(lbl_loc_l, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align_to(lbl_loc_l, lbl_u, LV_ALIGN_OUT_BOTTOM_LEFT, 0, vertical_element_spacing);
+
+  lbl_loc = lv_label_create(cont);
+  lv_label_set_text(lbl_loc, location.c_str());
+  lv_obj_set_style_text_font(lbl_loc, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align_to(lbl_loc, lbl_loc_l, LV_ALIGN_OUT_RIGHT_MID, 5, 0);
+
   // Language selection
   lv_obj_t *lbl_lang = lv_label_create(cont);
   lv_label_set_text(lbl_lang, strings->language_label);
   lv_obj_set_style_text_font(lbl_lang, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_align(lbl_lang, LV_ALIGN_TOP_LEFT, 0, 105);
-  
+  lv_obj_align_to(lbl_lang, lbl_loc_l, LV_ALIGN_OUT_BOTTOM_LEFT, 0, vertical_element_spacing);
+
   language_dropdown = lv_dropdown_create(cont);
   lv_dropdown_set_options(language_dropdown, "English\nEspañol\nDeutsch\nFrançais\nTürkçe\nSvenska\nItaliano");
   lv_dropdown_set_selected(language_dropdown, current_language);
@@ -1033,6 +1097,18 @@ void create_settings_window() {
   lv_obj_align_to(language_dropdown, lbl_lang, LV_ALIGN_OUT_RIGHT_MID, 10, 0);
   lv_obj_add_event_cb(language_dropdown, settings_event_handler, LV_EVENT_VALUE_CHANGED, NULL);
 
+  // Location search button
+  lv_obj_t *btn_change_loc = lv_btn_create(cont);
+  lv_obj_align_to(btn_change_loc, lbl_lang, LV_ALIGN_OUT_BOTTOM_LEFT, 0, vertical_element_spacing);
+
+  lv_obj_set_size(btn_change_loc, 100, 40);
+  lv_obj_add_event_cb(btn_change_loc, change_location_event_cb, LV_EVENT_CLICKED, NULL);
+  lv_obj_t *lbl_chg = lv_label_create(btn_change_loc);
+  lv_label_set_text(lbl_chg, strings->location_btn);
+  lv_obj_set_style_text_font(lbl_chg, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_center(lbl_chg);
+
+  // Hidden keyboard object
   if (!kb) {
     kb = lv_keyboard_create(lv_scr_act());
     lv_keyboard_set_mode(kb, LV_KEYBOARD_MODE_TEXT_LOWER);
@@ -1041,12 +1117,14 @@ void create_settings_window() {
     lv_obj_add_event_cb(kb, kb_event_cb, LV_EVENT_CANCEL, NULL);
   }
 
+  // Reset WiFi button
   lv_obj_t *btn_reset = lv_btn_create(cont);
   lv_obj_set_style_bg_color(btn_reset, lv_palette_main(LV_PALETTE_RED), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_bg_color(btn_reset, lv_palette_darken(LV_PALETTE_RED, 1), LV_PART_MAIN | LV_STATE_PRESSED);
   lv_obj_set_style_text_color(btn_reset, lv_color_white(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_size(btn_reset, 100, 40);
-  lv_obj_align(btn_reset, LV_ALIGN_TOP_RIGHT, 0, 140);
+  lv_obj_align_to(btn_reset, btn_change_loc, LV_ALIGN_OUT_RIGHT_MID, 12, 0);
+
   lv_obj_add_event_cb(btn_reset, reset_wifi_event_handler, LV_EVENT_CLICKED, nullptr);
 
   lv_obj_t *lbl_reset = lv_label_create(btn_reset);
@@ -1054,11 +1132,13 @@ void create_settings_window() {
   lv_obj_set_style_text_font(lbl_reset, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_center(lbl_reset);
 
+  // Close Settings button
   btn_close_obj = lv_btn_create(cont);
   lv_obj_set_size(btn_close_obj, 80, 40);
   lv_obj_align(btn_close_obj, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
   lv_obj_add_event_cb(btn_close_obj, settings_event_handler, LV_EVENT_CLICKED, NULL);
 
+  // Cancel button
   lv_obj_t *lbl_btn = lv_label_create(btn_close_obj);
   lv_label_set_text(lbl_btn, strings->close);
   lv_obj_set_style_text_font(lbl_btn, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1077,6 +1157,10 @@ static void settings_event_handler(lv_event_t *e) {
     use_24_hour = lv_obj_has_state(clock_24hr_switch, LV_STATE_CHECKED);
   }
 
+  if (tgt == night_mode_switch && code == LV_EVENT_VALUE_CHANGED) {
+    use_night_mode = lv_obj_has_state(night_mode_switch, LV_STATE_CHECKED);
+  }
+
   if (tgt == language_dropdown && code == LV_EVENT_VALUE_CHANGED) {
     current_language = (Language)lv_dropdown_get_selected(language_dropdown);
     // Update the UI immediately to reflect language change
@@ -1086,8 +1170,9 @@ static void settings_event_handler(lv_event_t *e) {
     // Save preferences and recreate UI with new language
     prefs.putBool("useFahrenheit", use_fahrenheit);
     prefs.putBool("use24Hour", use_24_hour);
+    prefs.putBool("useNightMode", use_night_mode);
     prefs.putUInt("language", current_language);
-    
+
     lv_keyboard_set_textarea(kb, nullptr);
     lv_obj_add_flag(kb, LV_OBJ_FLAG_HIDDEN);
     
@@ -1101,6 +1186,7 @@ static void settings_event_handler(lv_event_t *e) {
   if (tgt == btn_close_obj && code == LV_EVENT_CLICKED) {
     prefs.putBool("useFahrenheit", use_fahrenheit);
     prefs.putBool("use24Hour", use_24_hour);
+    prefs.putBool("useNightMode", use_night_mode);
     prefs.putUInt("language", current_language);
 
     lv_keyboard_set_textarea(kb, nullptr);
@@ -1113,6 +1199,55 @@ static void settings_event_handler(lv_event_t *e) {
   }
 }
 
+// Screen dimming functions implementation
+bool night_mode_should_be_active() {
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) return false;
+
+  if (!use_night_mode) return false;
+  
+  int hour = timeinfo.tm_hour;
+  // Screen should be dimmed between 10pm (22:00) and 6am (06:00)
+  Serial.print("Screen should be dimmed? ");
+  Serial.println((hour >= 11 || hour < 6));
+  return (hour >= 11 || hour < 6);
+}
+
+void activate_night_mode() {
+  analogWrite(LCD_BACKLIGHT_PIN, 0);
+  night_mode_active = true;
+}
+
+void deactivate_night_mode() {
+  analogWrite(LCD_BACKLIGHT_PIN, prefs.getUInt("brightness", 128));
+  night_mode_active = false;
+}
+
+void check_for_night_mode() {
+  bool night_mode_time = night_mode_should_be_active();
+
+  if (night_mode_time && !night_mode_active && !temp_screen_wakeup_active) {
+    activate_night_mode();
+  } else if (!night_mode_time && night_mode_active) {
+    deactivate_night_mode();
+  }
+}
+
+void handle_temp_screen_wakeup_timeout(lv_timer_t *timer) {
+  if (temp_screen_wakeup_active) {
+    temp_screen_wakeup_active = false;
+
+    if (night_mode_should_be_active()) {
+      activate_night_mode();
+    }
+  }
+  
+  if (temp_screen_wakeup_timer) {
+    lv_timer_del(temp_screen_wakeup_timer);
+    temp_screen_wakeup_timer = nullptr;
+  }
+}
+
 void do_geocode_query(const char *q) {
   geoDoc.clear();
   String url = String("https://geocoding-api.open-meteo.com/v1/search?name=") + urlencode(q) + "&count=15";
@@ -1120,11 +1255,16 @@ void do_geocode_query(const char *q) {
   HTTPClient http;
   http.begin(url);
   if (http.GET() == HTTP_CODE_OK) {
+    Serial.println("Completed location search at open-meteo: " + url);
     auto err = deserializeJson(geoDoc, http.getString());
     if (!err) {
       geoResults = geoDoc["results"].as<JsonArray>();
       populate_results_dropdown();
+    } else {
+        Serial.println("Failed to parse search response from open-meteo: " + url);
     }
+  } else {
+      Serial.println("Failed location search at open-meteo: " + url);
   }
   http.end();
 }
@@ -1239,10 +1379,10 @@ void fetch_and_update_weather() {
 
 
     } else {
-      Serial.print("JSON parse failed\n");
+      Serial.println("JSON parse failed on result from " + url);
     }
   } else {
-    Serial.println("HTTP GET failed");
+    Serial.println("HTTP GET failed at " + url);
   }
   http.end();
 }
