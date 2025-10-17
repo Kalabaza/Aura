@@ -582,7 +582,7 @@ static void location_cancel_event_cb(lv_event_t *e) {
   location_win = nullptr;
 }
 
-void screen_event_cb(lv_event_t *e) {
+static void screen_event_cb(lv_event_t *e) {
   create_settings_window();
 }
 
