@@ -25,11 +25,15 @@
 #define LONGITUDE_DEFAULT "-0.1278"
 #define LOCATION_DEFAULT "London"
 #define DEFAULT_CAPTIVE_SSID "Aura"
-#define UPDATE_INTERVAL 600000UL  // 10 minutes
+#define WEATHER_UPDATE_INTERVAL 600000UL  // 10 minutes
+#define SCREEN_UPDATE_INTERVAL 1000UL     // 1 second
 
-// Night mode starts at 10pm and ends at 6am
-#define NIGHT_MODE_START_HOUR 22
+// Night mode starts at 8pm and ends at 6am
+#define NIGHT_MODE_START_HOUR 20
 #define NIGHT_MODE_END_HOUR 6
+
+// Allowed screen timeout values in seconds
+const uint16_t SCREEN_TIMEOUTS[] = {5, 10, 15, 30, 60};
 
 LV_FONT_DECLARE(lv_font_montserrat_latin_12);
 LV_FONT_DECLARE(lv_font_montserrat_latin_14);
@@ -66,11 +70,19 @@ static String location = String(LOCATION_DEFAULT);
 static char dd_opts[512];
 static DynamicJsonDocument geoDoc(8 * 1024);
 static JsonArray geoResults;
+static bool use_screen_off = false;
+static uint16_t screenOffTimeout =
+    SCREEN_TIMEOUTS[sizeof(SCREEN_TIMEOUTS) / sizeof(SCREEN_TIMEOUTS[0]) / 2];
 
-// Screen dimming variables
+// Night mode variables
 static bool night_mode_active = false;
 static bool temp_screen_wakeup_active = false;
 static lv_timer_t* temp_screen_wakeup_timer = nullptr;
+
+// Screen-off variables
+static bool screen_off_active = false;
+static unsigned long last_interaction_ms = 0;
+static unsigned long ignore_touch_until = 0;
 
 // UI components
 static lv_obj_t* lbl_today_temp;
@@ -100,6 +112,9 @@ static lv_obj_t* clock_24hr_switch;
 static lv_obj_t* night_mode_switch;
 static lv_obj_t* language_dropdown;
 static lv_obj_t* lbl_clock;
+static lv_obj_t* screen_off_switch;
+static lv_obj_t* timeout_dropdown;
+static lv_obj_t* lbl_wifi;
 
 // Weather icons
 LV_IMG_DECLARE(icon_blizzard);
@@ -167,9 +182,7 @@ const lv_img_dsc_t* choose_icon(int wmo_code, int is_day);
 
 // Screen dimming functions
 bool night_mode_should_be_active();
-void activate_night_mode();
-void deactivate_night_mode();
-void check_for_night_mode();
+void update_screen_behavior();
 void handle_temp_screen_wakeup_timeout(lv_timer_t* timer);
 
 int day_of_week(int y, int m, int d)
@@ -236,7 +249,7 @@ static void update_clock(lv_timer_t* timer)
 {
   struct tm timeinfo;
 
-  check_for_night_mode();
+  update_screen_behavior();
 
   if (!getLocalTime(&timeinfo))
     return;
@@ -256,6 +269,15 @@ static void update_clock(lv_timer_t* timer)
     snprintf(buf, sizeof(buf), "%d:%02d%s", hour, timeinfo.tm_min, ampm);
   }
   lv_label_set_text(lbl_clock, buf);
+
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    lv_label_set_text(lbl_wifi, LV_SYMBOL_WIFI);
+  }
+  else
+  {
+    lv_label_set_text(lbl_wifi, LV_SYMBOL_CLOSE);
+  }
 }
 
 static void ta_event_cb(lv_event_t* e)
@@ -293,36 +315,52 @@ void touchscreen_read(lv_indev_t* indev, lv_indev_data_t* data)
 {
   if (touchscreen.tirqTouched() && touchscreen.touched())
   {
+    // If we're still in the post-wakeup ignore window, discard touch
+    if (millis() < ignore_touch_until)
+    {
+      data->state = LV_INDEV_STATE_RELEASED;
+      return;
+    }
     TS_Point p = touchscreen.getPoint();
 
     x = map(p.x, 200, 3700, 1, SCREEN_WIDTH);
     y = map(p.y, 240, 3800, 1, SCREEN_HEIGHT);
     z = p.z;
 
-    // Handle touch during dimmed screen
-    if (night_mode_active)
-    {
-      // Temporarily wake the screen for 15 seconds
-      analogWrite(LCD_BACKLIGHT_PIN, prefs.getUInt("brightness", 128));
+    // Update last interaction time for auto-off
+    last_interaction_ms = millis();
 
+    // Handle touch with the screen off
+    if (screen_off_active)
+    {
+      screen_off_active = false;
+      temp_screen_wakeup_active = true;
+
+      // Apply appropriate brightness
+      if (use_night_mode && night_mode_should_be_active())
+      {
+        analogWrite(LCD_BACKLIGHT_PIN, prefs.getUInt("nightBrightness", 64));
+      }
+      else
+      {
+        analogWrite(LCD_BACKLIGHT_PIN, prefs.getUInt("dayBrightness", 128));
+      }
+
+      // Set timer to turn screen off after inactivity
       if (temp_screen_wakeup_timer)
       {
         lv_timer_del(temp_screen_wakeup_timer);
       }
-      temp_screen_wakeup_timer = lv_timer_create(handle_temp_screen_wakeup_timeout, 15000, NULL);
-      lv_timer_set_repeat_count(temp_screen_wakeup_timer, 1);  // Run only once
-      Serial.println(
-          "Woke up screen. Setting timer to turn of screen after 15 seconds of inactivity.");
+      temp_screen_wakeup_timer =
+          lv_timer_create(handle_temp_screen_wakeup_timeout, screenOffTimeout * 1000UL, NULL);
+      lv_timer_set_repeat_count(temp_screen_wakeup_timer, 1);
+      Serial.println(String("Woke up screen. Setting timer to turn off screen after ") +
+                     String(screenOffTimeout) + " seconds of inactivity.");
 
-      if (!temp_screen_wakeup_active)
-      {
-        // If this is the wake-up tap, don't pass this touch to the UI - just undim the screen
-        temp_screen_wakeup_active = true;
-        data->state = LV_INDEV_STATE_RELEASED;
-        return;
-      }
-
-      temp_screen_wakeup_active = true;
+      // Ignore this touch event and any further touches for 500ms
+      ignore_touch_until = millis() + 500;
+      data->state = LV_INDEV_STATE_RELEASED;
+      return;
     }
 
     data->state = LV_INDEV_STATE_PRESSED;
@@ -365,10 +403,24 @@ void setup()
   use_fahrenheit = prefs.getBool("useFahrenheit", false);
   location = prefs.getString("location", LOCATION_DEFAULT);
   use_night_mode = prefs.getBool("useNightMode", false);
-  uint32_t brightness = prefs.getUInt("brightness", 255);
+  uint32_t brightness = prefs.getUInt("dayBrightness", 255);
   use_24_hour = prefs.getBool("use24Hour", false);
   current_language = (Language)prefs.getUInt("language", LANG_EN);
-  analogWrite(LCD_BACKLIGHT_PIN, brightness);
+  use_screen_off = prefs.getBool("useScreenOff", false);
+
+  // Check night mode and apply appropriate brightness
+  if (use_night_mode && night_mode_should_be_active())
+  {
+    uint32_t night_brightness = prefs.getUInt("nightBrightness", 128);
+    analogWrite(LCD_BACKLIGHT_PIN, night_brightness);
+    night_mode_active = true;
+  }
+  else
+  {
+    analogWrite(LCD_BACKLIGHT_PIN, brightness);
+  }
+  screenOffTimeout = prefs.getUInt(
+      "scrOffTimeout", SCREEN_TIMEOUTS[sizeof(SCREEN_TIMEOUTS) / sizeof(SCREEN_TIMEOUTS[0]) / 2]);
 
   // Check for Wi-Fi config and request it if not available
   WiFiManager wm;
@@ -401,12 +453,22 @@ void apModeCallback(WiFiManager* mgr)
 void loop()
 {
   lv_timer_handler();
-  static uint32_t last = millis();
+  static uint32_t last_weather_update = millis();
+  static uint32_t last_screen_update = last_weather_update;
+  uint32_t now = millis();
 
-  if (millis() - last >= UPDATE_INTERVAL)
+  // Update weather data periodically
+  if (now - last_weather_update >= WEATHER_UPDATE_INTERVAL)
   {
     fetch_and_update_weather();
-    last = millis();
+    last_weather_update = now;
+  }
+
+  // Update the screen behavior (night mode, auto-off)
+  if (now - last_screen_update >= SCREEN_UPDATE_INTERVAL)
+  {
+    update_screen_behavior();
+    last_screen_update = now;
   }
 
   lv_tick_inc(5);
@@ -552,12 +614,19 @@ void create_ui()
 
   lv_obj_add_flag(box_hourly, LV_OBJ_FLAG_HIDDEN);
 
-  // Create clock label in the top-right corner
+  // Create clock label in the top-left corner
   lbl_clock = lv_label_create(scr);
   lv_obj_set_style_text_font(lbl_clock, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_text_color(lbl_clock, lv_color_hex(0xb9ecff), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_label_set_text(lbl_clock, "");
-  lv_obj_align(lbl_clock, LV_ALIGN_TOP_RIGHT, -10, 2);
+  lv_obj_align(lbl_clock, LV_ALIGN_TOP_LEFT, 10, 2);
+
+  // Show wifi signal icon in top-right corner
+  lbl_wifi = lv_label_create(scr);
+  lv_obj_set_style_text_font(lbl_wifi, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_text_color(lbl_wifi, lv_color_hex(0xb9ecff), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_label_set_text(lbl_wifi, "");
+  lv_obj_align(lbl_wifi, LV_ALIGN_TOP_RIGHT, -10, 2);
 }
 
 void populate_results_dropdown()
@@ -804,12 +873,12 @@ void create_settings_window()
 
   // Brightness
   lv_obj_t* lbl_b = lv_label_create(cont);
-  lv_label_set_text(lbl_b, strings->brightness);
+  lv_label_set_text(lbl_b, strings->day_brightness);
   lv_obj_set_style_text_font(lbl_b, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_align(lbl_b, LV_ALIGN_TOP_LEFT, 0, 5);
   lv_obj_t* slider = lv_slider_create(cont);
   lv_slider_set_range(slider, 1, 255);
-  uint32_t saved_b = prefs.getUInt("brightness", 128);
+  uint32_t saved_b = prefs.getUInt("dayBrightness", 128);
   lv_slider_set_value(slider, saved_b, LV_ANIM_OFF);
   lv_obj_set_width(slider, 100);
   lv_obj_align_to(slider, lbl_b, LV_ALIGN_OUT_RIGHT_MID, 10, 0);
@@ -820,12 +889,16 @@ void create_settings_window()
       {
         lv_obj_t* s = (lv_obj_t*)lv_event_get_target(e);
         uint32_t v = lv_slider_get_value(s);
-        analogWrite(LCD_BACKLIGHT_PIN, v);
-        prefs.putUInt("brightness", v);
+        prefs.putUInt("dayBrightness", v);
+        // If night mode is not active, apply the normal brightness
+        if (!night_mode_active)
+        {
+          analogWrite(LCD_BACKLIGHT_PIN, v);
+        }
       },
       LV_EVENT_VALUE_CHANGED, NULL);
 
-  // 'Night mode' switch
+  // Night mode switch
   lv_obj_t* lbl_night_mode = lv_label_create(cont);
   lv_label_set_text(lbl_night_mode, strings->use_night_mode);
   lv_obj_set_style_text_font(lbl_night_mode, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -843,11 +916,94 @@ void create_settings_window()
   }
   lv_obj_add_event_cb(night_mode_switch, settings_event_handler, LV_EVENT_VALUE_CHANGED, NULL);
 
-  // 'Use F' switch
+  // Night mode brightness slider
+  lv_obj_t* lbl_night_brightness = lv_label_create(cont);
+  lv_label_set_text(lbl_night_brightness, strings->night_brightness);
+  lv_obj_set_style_text_font(lbl_night_brightness, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align_to(lbl_night_brightness, lbl_night_mode, LV_ALIGN_OUT_BOTTOM_LEFT, 0,
+                  vertical_element_spacing);
+
+  lv_obj_t* night_slider = lv_slider_create(cont);
+  lv_slider_set_range(night_slider, 1, 128);
+  uint32_t saved_night_b = prefs.getUInt("nightBrightness", 64);
+  lv_slider_set_value(night_slider, saved_night_b, LV_ANIM_OFF);
+  lv_obj_set_width(night_slider, 100);
+  lv_obj_align_to(night_slider, lbl_night_brightness, LV_ALIGN_OUT_RIGHT_MID, 10, 0);
+
+  lv_obj_add_event_cb(
+      night_slider,
+      [](lv_event_t* e)
+      {
+        lv_obj_t* s = (lv_obj_t*)lv_event_get_target(e);
+        uint32_t v = lv_slider_get_value(s);
+        prefs.putUInt("nightBrightness", v);
+        if (night_mode_active)
+        {
+          analogWrite(LCD_BACKLIGHT_PIN, v);
+        }
+      },
+      LV_EVENT_VALUE_CHANGED, NULL);
+
+  // Screen off switch
+  lv_obj_t* lbl_screen_off = lv_label_create(cont);
+  lv_label_set_text(lbl_screen_off, strings->screen_off);
+  lv_obj_set_style_text_font(lbl_screen_off, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align_to(lbl_screen_off, lbl_night_brightness, LV_ALIGN_OUT_BOTTOM_LEFT, 0,
+                  vertical_element_spacing);
+
+  screen_off_switch = lv_switch_create(cont);
+  lv_obj_align_to(screen_off_switch, lbl_screen_off, LV_ALIGN_OUT_RIGHT_MID, 6, 0);
+  if (use_screen_off)
+  {
+    lv_obj_add_state(screen_off_switch, LV_STATE_CHECKED);
+  }
+  else
+  {
+    lv_obj_remove_state(screen_off_switch, LV_STATE_CHECKED);
+  }
+  lv_obj_add_event_cb(screen_off_switch, settings_event_handler, LV_EVENT_VALUE_CHANGED, NULL);
+
+  // Screen timeout dropdown
+  lv_obj_t* lbl_timeout = lv_label_create(cont);
+  lv_label_set_text(lbl_timeout, strings->screen_timeout);
+  lv_obj_set_style_text_font(lbl_timeout, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align_to(lbl_timeout, lbl_screen_off, LV_ALIGN_OUT_BOTTOM_LEFT, 0,
+                  vertical_element_spacing);
+  timeout_dropdown = lv_dropdown_create(cont);
+
+  // Build string with options from SCREEN_TIMEOUTS using localized seconds label
+  char timeout_opts[64];
+  timeout_opts[0] = '\0';
+  size_t num_timeouts = sizeof(SCREEN_TIMEOUTS) / sizeof(SCREEN_TIMEOUTS[0]);
+  uint8_t current_index = num_timeouts / 2;
+  for (size_t i = 0; i < num_timeouts; ++i)
+  {
+    char buf[16];
+    snprintf(buf, sizeof(buf), "%u %s", (unsigned)SCREEN_TIMEOUTS[i], strings->seconds_short);
+    strcat(timeout_opts, buf);
+    if (i < num_timeouts - 1)
+      strcat(timeout_opts, "\n");
+
+    // Check if this is our current timeout value
+    if (SCREEN_TIMEOUTS[i] == screenOffTimeout)
+    {
+      current_index = i;
+    }
+  }
+  lv_dropdown_set_options(timeout_dropdown, timeout_opts);
+  lv_dropdown_set_selected(timeout_dropdown, current_index);
+  lv_obj_set_width(timeout_dropdown, 70);
+  lv_obj_align_to(timeout_dropdown, lbl_timeout, LV_ALIGN_OUT_RIGHT_MID, 10, 0);
+  lv_obj_add_event_cb(timeout_dropdown, settings_event_handler, LV_EVENT_VALUE_CHANGED, NULL);
+  lv_obj_set_style_text_font(timeout_dropdown, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_t* list_timeout = lv_dropdown_get_list(timeout_dropdown);
+  lv_obj_set_style_text_font(list_timeout, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
+
+  // Use Fahrenheit switch
   lv_obj_t* lbl_u = lv_label_create(cont);
   lv_label_set_text(lbl_u, strings->use_fahrenheit);
   lv_obj_set_style_text_font(lbl_u, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_align_to(lbl_u, lbl_night_mode, LV_ALIGN_OUT_BOTTOM_LEFT, 0, vertical_element_spacing);
+  lv_obj_align_to(lbl_u, lbl_timeout, LV_ALIGN_OUT_BOTTOM_LEFT, 0, vertical_element_spacing);
 
   unit_switch = lv_switch_create(cont);
   lv_obj_align_to(unit_switch, lbl_u, LV_ALIGN_OUT_RIGHT_MID, 6, 0);
@@ -948,11 +1104,10 @@ void create_settings_window()
 
   // Close Settings button
   btn_close_obj = lv_btn_create(cont);
-  lv_obj_set_size(btn_close_obj, 80, 40);
-  lv_obj_align(btn_close_obj, LV_ALIGN_BOTTOM_RIGHT, 0, 0);
+  lv_obj_set_size(btn_close_obj, 100, 40);
+  lv_obj_align_to(btn_close_obj, btn_change_loc, LV_ALIGN_OUT_BOTTOM_LEFT, 55,
+                  vertical_element_spacing);
   lv_obj_add_event_cb(btn_close_obj, settings_event_handler, LV_EVENT_CLICKED, NULL);
-
-  // Cancel button
   lv_obj_t* lbl_btn = lv_label_create(btn_close_obj);
   lv_label_set_text(lbl_btn, strings->close);
   lv_obj_set_style_text_font(lbl_btn, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -979,26 +1134,54 @@ static void settings_event_handler(lv_event_t* e)
     use_night_mode = lv_obj_has_state(night_mode_switch, LV_STATE_CHECKED);
   }
 
+  if (tgt == screen_off_switch && code == LV_EVENT_VALUE_CHANGED)
+  {
+    use_screen_off = lv_obj_has_state(screen_off_switch, LV_STATE_CHECKED);
+  }
+
+  if (tgt == timeout_dropdown && code == LV_EVENT_VALUE_CHANGED)
+  {
+    screenOffTimeout = SCREEN_TIMEOUTS[lv_dropdown_get_selected(timeout_dropdown)];
+    prefs.putUInt("scrOffTimeout", screenOffTimeout);
+  }
+
   if (tgt == language_dropdown && code == LV_EVENT_VALUE_CHANGED)
   {
     current_language = (Language)lv_dropdown_get_selected(language_dropdown);
-    // Update the UI immediately to reflect language change
-    lv_obj_del(settings_win);
-    settings_win = nullptr;
 
     // Save preferences and recreate UI with new language
     prefs.putBool("useFahrenheit", use_fahrenheit);
     prefs.putBool("use24Hour", use_24_hour);
     prefs.putBool("useNightMode", use_night_mode);
+    prefs.putBool("useScreenOff", use_screen_off);
     prefs.putUInt("language", current_language);
 
     lv_keyboard_set_textarea(kb, nullptr);
     lv_obj_add_flag(kb, LV_OBJ_FLAG_HIDDEN);
 
-    // Recreate the main UI with the new language
-    lv_obj_clean(lv_scr_act());
-    create_ui();
-    fetch_and_update_weather();
+    // Schedule a one-shot timer to rebuild the UI. This avoids LVGL
+    // re-entrancy problems where deleting windows while the dropdown
+    // is still processing can lead to inconsistent visual updates.
+    lv_timer_t* lang_timer = lv_timer_create(
+        [](lv_timer_t* t)
+        {
+          // Delete settings window if still present
+          if (settings_win)
+          {
+            lv_obj_del(settings_win);
+            settings_win = nullptr;
+          }
+
+          // Clean the screen and recreate main UI with the new language
+          lv_obj_clean(lv_scr_act());
+          create_ui();
+
+          // Remove the timer (one-shot)
+          lv_timer_del(t);
+        },
+        200, NULL);
+    lv_timer_set_repeat_count(lang_timer, 1);
+
     return;
   }
 
@@ -1007,6 +1190,7 @@ static void settings_event_handler(lv_event_t* e)
     prefs.putBool("useFahrenheit", use_fahrenheit);
     prefs.putBool("use24Hour", use_24_hour);
     prefs.putBool("useNightMode", use_night_mode);
+    prefs.putBool("useScreenOff", use_screen_off);
     prefs.putUInt("language", current_language);
 
     lv_keyboard_set_textarea(kb, nullptr);
@@ -1014,8 +1198,6 @@ static void settings_event_handler(lv_event_t* e)
 
     lv_obj_del(settings_win);
     settings_win = nullptr;
-
-    fetch_and_update_weather();
   }
 }
 
@@ -1035,27 +1217,46 @@ bool night_mode_should_be_active()
 
 void activate_night_mode()
 {
-  analogWrite(LCD_BACKLIGHT_PIN, 0);
+  analogWrite(LCD_BACKLIGHT_PIN, prefs.getUInt("nightBrightness", 64));
   night_mode_active = true;
 }
 
 void deactivate_night_mode()
 {
-  analogWrite(LCD_BACKLIGHT_PIN, prefs.getUInt("brightness", 128));
+  analogWrite(LCD_BACKLIGHT_PIN, prefs.getUInt("dayBrightness", 128));
   night_mode_active = false;
 }
 
-void check_for_night_mode()
+inline void turn_screen_off()
+{
+  analogWrite(LCD_BACKLIGHT_PIN, 0);
+  screen_off_active = true;
+}
+
+void update_screen_behavior()
 {
   bool night_mode_time = night_mode_should_be_active();
 
-  if (night_mode_time && !night_mode_active && !temp_screen_wakeup_active)
+  unsigned long now = millis();
+
+  if (night_mode_time && !night_mode_active)
   {
     activate_night_mode();
   }
   else if (!night_mode_time && night_mode_active)
   {
     deactivate_night_mode();
+  }
+
+  if (use_screen_off)
+  {
+    if (!screen_off_active && !temp_screen_wakeup_active)
+    {
+      if (now - last_interaction_ms >= screenOffTimeout * 1000UL)
+      {
+        turn_screen_off();
+      }
+    }
   }
 }
 
@@ -1064,11 +1265,7 @@ void handle_temp_screen_wakeup_timeout(lv_timer_t* timer)
   if (temp_screen_wakeup_active)
   {
     temp_screen_wakeup_active = false;
-
-    if (night_mode_should_be_active())
-    {
-      activate_night_mode();
-    }
+    update_screen_behavior();
   }
 
   if (temp_screen_wakeup_timer)
