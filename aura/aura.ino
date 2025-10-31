@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <FS.h>
 #include <HTTPClient.h>
 #include <Preferences.h>
 #include <TFT_eSPI.h>
