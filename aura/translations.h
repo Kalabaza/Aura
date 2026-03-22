@@ -41,8 +41,11 @@ struct LocalizedStrings
   const char* search_results;
   const char* city_placeholder;
   const char* wifi_config;
+  const char* wifi_connecting;
   const char* reset_confirmation;
   const char* language_label;
+  const char* tab_display;
+  const char* tab_general;
   const char* weekdays[7];
   const char* use_night_mode;
   const char* night_brightness;
@@ -90,12 +93,15 @@ static const LocalizedStrings strings_en = {
     "after connecting,\n"
     "visit http://192.168.4.1\n"
     "in your web browser.",
+    "Connecting to Wi-Fi...",
     "Are you sure you want to reset "
     "Wi-Fi credentials?\n\n"
     "You'll need to reconnect to the Wifi SSID " DEFAULT_CAPTIVE_SSID
     " with your phone or browser to "
     "reconfigure Wi-Fi credentials.",
     "Language:",
+    "Display",
+    "General",
     {"Sun", "Mon", "Tues", "Wed", "Thurs", "Fri", "Sat"},
     "Dim screen at night",
     "Night brightness:",
@@ -139,6 +145,7 @@ static const LocalizedStrings strings_es = {"--°C",
                                             "de conectarse, visite\n"
                                             "http://192.168.4.1\n"
                                             "en su navegador.",
+                                            "Conectando a Wi-Fi...",
                                             "¿Está seguro de que desea\n"
                                             "restablecer las credenciales\n"
                                             "Wi-Fi?\n\n"
@@ -147,6 +154,8 @@ static const LocalizedStrings strings_es = {"--°C",
                                             "para reconfigurar las\n"
                                             "credenciales Wi-Fi.",
                                             "Idioma:",
+                                            "Pantalla",
+                                            "General",
                                             {"Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"},
                                             "Pantalla de noche",
                                             "Brillo nocturno:",
@@ -191,6 +200,7 @@ static const LocalizedStrings strings_de = {"--°C",
                                             "sehen, besuchen Sie\n"
                                             "http://192.168.4.1\n"
                                             "in Ihrem Browser.",
+                                            "Verbindung zum Wi-Fi...",
                                             "Sind Sie sicher, dass Sie\n"
                                             "die Wi-Fi Zugangsdaten\n"
                                             "zurücksetzen möchten?\n\n"
@@ -200,6 +210,8 @@ static const LocalizedStrings strings_de = {"--°C",
                                             "Wi-Fi Zugangsdaten\n"
                                             "neu zu konfigurieren.",
                                             "Sprache:",
+                                            "Anzeige",
+                                            "Allgemein",
                                             {"So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"},
                                             "Nacht-Dimmen",
                                             "Nachthelligkeit:",
@@ -244,6 +256,7 @@ static const LocalizedStrings strings_fr = {"--°C",
                                             "après connexion, visitez\n"
                                             "http://192.168.4.1\n"
                                             "dans votre navigateur.",
+                                            "Connexion au Wi-Fi...",
                                             "Êtes-vous sûr de vouloir\n"
                                             "réinitialiser les\n"
                                             "identifiants Wi-Fi?\n\n"
@@ -253,6 +266,8 @@ static const LocalizedStrings strings_fr = {"--°C",
                                             "navigateur pour reconfigurer\n"
                                             "les identifiants Wi-Fi.",
                                             "Langue:",
+                                            "Affichage",
+                                            "Général",
                                             {"Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"},
                                             "Nuit écrant",
                                             "Luminosité nocturne:",
@@ -295,6 +310,7 @@ static const LocalizedStrings strings_tr = {"--°C",
                                             "yapilandirma ekrani görmezseniz,\n"
                                             "web tarayicinizda\n"
                                             "http://192.168.4.1 adresine gidin.",
+                                            "Wi-Fi'ye baglaniliyor...",
                                             "Wi-Fi kimlik bilgilerini sifirlamak\n"
                                             "istediğinizden emin misiniz?\n\n"
                                             "Wi-Fi kimlik bilgilerini yeniden\n"
@@ -303,6 +319,8 @@ static const LocalizedStrings strings_tr = {"--°C",
                                             " SSID'sine tekrar bağlanmaniz\n"
                                             "gerekecek.",
                                             "Dil:",
+                                            "Ekran",
+                                            "Genel",
                                             {"Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"},
                                             "Gece kısık",
                                             "Gece parlaklığı:",
@@ -356,7 +374,10 @@ static const LocalizedStrings strings_sv = {"--°C",
                                             "webbläsare för att\n"
                                             "omkonfigurera Wi-Fi-\n"
                                             "autentiseringsuppgifter.",
+                                            "Ansluter till Wi-Fi...",
                                             "Sprak:",
+                                            "Visning",
+                                            "Allmänt",
                                             {"Sön", "Man", "Tis", "Ons", "Tor", "Fre", "Lör"},
                                             "Nattdämpning",
                                             "Nattljusstyrka:",
@@ -401,12 +422,15 @@ static const LocalizedStrings strings_it = {
     "dopo il collegamento,\n"
     "visita http://192.168.4.1\n"
     "sul tuo web browser.",
+    "Connessione Wi-Fi...",
     "Sei sicuro di voler ripristinare "
     "le credenzili Wi-Fi ?\n\n"
     "Dovrai riconnetterti al WiFi con SSID " DEFAULT_CAPTIVE_SSID
     "con il tuo telefono o browser a "
     "riconfigurare le credenziali Wi-Fi.",
     "Lingua:",
+    "Schermo",
+    "Generale",
     {"Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"},
     "Schermo notte",
     "Luminosità notturna:",
