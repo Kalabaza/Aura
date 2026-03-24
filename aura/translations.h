@@ -42,6 +42,7 @@ struct LocalizedStrings
   const char* city_placeholder;
   const char* wifi_config;
   const char* wifi_connecting;
+  const char* weather_updating;
   const char* reset_confirmation;
   const char* language_label;
   const char* tab_display;
@@ -94,6 +95,7 @@ static const LocalizedStrings strings_en = {
     "visit http://192.168.4.1\n"
     "in your web browser.",
     "Connecting to Wi-Fi...",
+    "Updating weather...",
     "Are you sure you want to reset "
     "Wi-Fi credentials?\n\n"
     "You'll need to reconnect to the Wifi SSID " DEFAULT_CAPTIVE_SSID
@@ -146,6 +148,7 @@ static const LocalizedStrings strings_es = {"--°C",
                                             "http://192.168.4.1\n"
                                             "en su navegador.",
                                             "Conectando a Wi-Fi...",
+                                            "Actualizando tiempo...",
                                             "¿Está seguro de que desea\n"
                                             "restablecer las credenciales\n"
                                             "Wi-Fi?\n\n"
@@ -201,6 +204,7 @@ static const LocalizedStrings strings_de = {"--°C",
                                             "http://192.168.4.1\n"
                                             "in Ihrem Browser.",
                                             "Verbindung zum Wi-Fi...",
+                                            "Wetter wird geladen...",
                                             "Sind Sie sicher, dass Sie\n"
                                             "die Wi-Fi Zugangsdaten\n"
                                             "zurücksetzen möchten?\n\n"
@@ -257,6 +261,7 @@ static const LocalizedStrings strings_fr = {"--°C",
                                             "http://192.168.4.1\n"
                                             "dans votre navigateur.",
                                             "Connexion au Wi-Fi...",
+                                            "Météo en cours...",
                                             "Êtes-vous sûr de vouloir\n"
                                             "réinitialiser les\n"
                                             "identifiants Wi-Fi?\n\n"
@@ -311,6 +316,7 @@ static const LocalizedStrings strings_tr = {"--°C",
                                             "web tarayicinizda\n"
                                             "http://192.168.4.1 adresine gidin.",
                                             "Wi-Fi'ye baglaniliyor...",
+                                            "Hava durumu yükleniyor...",
                                             "Wi-Fi kimlik bilgilerini sifirlamak\n"
                                             "istediğinizden emin misiniz?\n\n"
                                             "Wi-Fi kimlik bilgilerini yeniden\n"
@@ -365,6 +371,7 @@ static const LocalizedStrings strings_sv = {"--°C",
                                             "efter anslutning, besök\n"
                                             "http://192.168.4.1\n"
                                             "i din webbläsare.",
+                                            "Ansluter till Wi-Fi...",
                                             "Ar du säker pa att du vill\n"
                                             "aterställa Wi-Fi-\n"
                                             "autentiseringsuppgifter?\n\n"
@@ -374,7 +381,7 @@ static const LocalizedStrings strings_sv = {"--°C",
                                             "webbläsare för att\n"
                                             "omkonfigurera Wi-Fi-\n"
                                             "autentiseringsuppgifter.",
-                                            "Ansluter till Wi-Fi...",
+                                            "Uppdaterar väder...",
                                             "Sprak:",
                                             "Visning",
                                             "Allmänt",
@@ -423,6 +430,7 @@ static const LocalizedStrings strings_it = {
     "visita http://192.168.4.1\n"
     "sul tuo web browser.",
     "Connessione Wi-Fi...",
+    "Aggiornamento meteo...",
     "Sei sicuro di voler ripristinare "
     "le credenzili Wi-Fi ?\n\n"
     "Dovrai riconnetterti al WiFi con SSID " DEFAULT_CAPTIVE_SSID

@@ -115,8 +115,12 @@ static lv_obj_t* language_dropdown;
 static lv_obj_t* lbl_clock;
 static lv_obj_t* screen_off_switch;
 static lv_obj_t* timeout_dropdown;
-static lv_obj_t* lbl_wifi;
+static lv_obj_t* wifi_bars[4];
+static lv_obj_t* wifi_container;
 static lv_obj_t* loading_overlay = nullptr;
+static lv_timer_t* spinner_timer = nullptr;
+static int32_t spinner_angle = 0;
+static lv_obj_t* spinner_arc = nullptr;
 
 static const unsigned long SETTINGS_MAX_DISPLAY_MS = 30000UL;  // 30 seconds
 static unsigned long settings_opened_ms = 0;
@@ -303,37 +307,31 @@ static void update_clock(lv_timer_t* timer)
   }
   lv_label_set_text(lbl_clock, buf);
 
-  // Update WiFi icon and signal strength percentage in top-right
   if (WiFi.status() == WL_CONNECTED)
   {
     int32_t rssi = WiFi.RSSI();
-    int percentage = 0;
-
+    int bars = 0;
     if (rssi >= -50)
-      percentage = 100;
+      bars = 4;
     else if (rssi >= -60)
-      percentage = 75;
+      bars = 3;
     else if (rssi >= -70)
-      percentage = 50;
+      bars = 2;
     else if (rssi >= -80)
-      percentage = 25;
-    else
-      percentage = 0;
+      bars = 1;
 
-    char wifi_buf[16];
-    if (percentage >= 75)
-      snprintf(wifi_buf, sizeof(wifi_buf), "%s", LV_SYMBOL_WIFI);
-    else if (percentage >= 50)
-      snprintf(wifi_buf, sizeof(wifi_buf), "%s-", LV_SYMBOL_WIFI);
-    else if (percentage >= 25)
-      snprintf(wifi_buf, sizeof(wifi_buf), "%s--", LV_SYMBOL_WIFI);
-    else
-      snprintf(wifi_buf, sizeof(wifi_buf), "%s---", LV_SYMBOL_WIFI);
-    lv_label_set_text(lbl_wifi, wifi_buf);
+    for (int i = 0; i < 4; i++)
+    {
+      lv_color_t col = (i < bars) ? lv_color_hex(0xb9ecff)   // active: light blue
+                                  : lv_color_hex(0x4a7a99);  // inactive: muted blue
+      lv_obj_set_style_bg_color(wifi_bars[i], col, 0);
+    }
+    lv_obj_clear_flag(wifi_container, LV_OBJ_FLAG_HIDDEN);
   }
   else
   {
-    lv_label_set_text(lbl_wifi, LV_SYMBOL_CLOSE);
+    // Show an X or just dim all bars
+    for (int i = 0; i < 4; i++) lv_obj_set_style_bg_color(wifi_bars[i], lv_color_hex(0xff4444), 0);
   }
 }
 
@@ -443,11 +441,12 @@ void setup()
 
   TFT_eSPI tft = TFT_eSPI();
   tft.init();
+  tft.fillScreen(TFT_BLACK);
   pinMode(LCD_BACKLIGHT_PIN, OUTPUT);
+  analogWrite(LCD_BACKLIGHT_PIN, 0);
 
   lv_init();
 
-  // Init touchscreen
   touchscreenSPI.begin(XPT2046_CLK, XPT2046_MISO, XPT2046_MOSI, XPT2046_CS);
   touchscreen.begin(touchscreenSPI);
   touchscreen.setRotation(0);
@@ -457,7 +456,6 @@ void setup()
   lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
   lv_indev_set_read_cb(indev, touchscreen_read);
 
-  // Load saved prefs
   prefs.begin("weather", false);
   String lat = prefs.getString("latitude", LATITUDE_DEFAULT);
   lat.toCharArray(latitude, sizeof(latitude));
@@ -470,55 +468,83 @@ void setup()
   use_24_hour = prefs.getBool("use24Hour", false);
   current_language = (Language)prefs.getUInt("language", LANG_EN);
   use_screen_off = prefs.getBool("useScreenOff", false);
-
-  // Check night mode and apply appropriate brightness
-  if (use_night_mode && night_mode_should_be_active())
-  {
-    uint32_t night_brightness = prefs.getUInt("nightBrightness", 128);
-    analogWrite(LCD_BACKLIGHT_PIN, night_brightness);
-    night_mode_active = true;
-  }
-  else
-  {
-    analogWrite(LCD_BACKLIGHT_PIN, brightness);
-  }
   screenOffTimeout = prefs.getUInt(
       "scrOffTimeout", SCREEN_TIMEOUTS[sizeof(SCREEN_TIMEOUTS) / sizeof(SCREEN_TIMEOUTS[0]) / 2]);
 
-  // Show loading screen while connecting to Wi-Fi
+  // Show loading screen immediately - it stays up until weather data is ready
   show_loading_screen(get_strings(current_language)->wifi_connecting);
-  flush_wifi_splashscreen(150);  // Render the loading screen immediately
+  analogWrite(LCD_BACKLIGHT_PIN, brightness);
+  flush_wifi_splashscreen(300);
 
-  // Check for Wi-Fi config and request it if not available
-  WiFiManager wm;
-  wm.setAPCallback(apModeCallback);
-  wm.setTimeout(20);  // avoid long hanging connect attempts
-  wm.autoConnect(DEFAULT_CAPTIVE_SSID);
+  // WiFi connect
+  WiFi.mode(WIFI_STA);
+  WiFi.persistent(true);
+  WiFi.setAutoReconnect(true);
+  if (WiFi.SSID().length() > 0)
+    WiFi.begin(WiFi.SSID().c_str(), WiFi.psk().c_str());
+  else
+    WiFi.begin();
 
-  // Connection established; create UI immediately
-  lv_timer_create(update_clock, 1000, NULL);
+  uint32_t wifi_start = millis();
+  bool connected = false;
+  while (millis() - wifi_start < 8000)
+  {
+    lv_tick_inc(5);
+    lv_timer_handler();
+    delay(5);
+    if (WiFi.status() == WL_CONNECTED)
+    {
+      connected = true;
+      break;
+    }
+  }
 
-  // Create UI elements immediately (weather UI visible right away)
-  create_ui();
+  if (!connected)
+  {
+    WiFiManager wm;
+    wm.setAPCallback(apModeCallback);
+    wm.setTimeout(20);
+    wm.autoConnect(DEFAULT_CAPTIVE_SSID);
+  }
 
-  // Force immediate clock update so it shows right away
-  update_clock(NULL);
+  // Apply night mode
+  if (use_night_mode && night_mode_should_be_active())
+  {
+    analogWrite(LCD_BACKLIGHT_PIN, prefs.getUInt("nightBrightness", 128));
+    night_mode_active = true;
+  }
 
-  // Show small syncing overlay while fetching weather
-  show_syncing_overlay("syncing...");
-
-  // First weather fetch (may take 1-3 seconds)
-  fetch_and_update_weather();
-
-  // Update clock once more after NTP/time info may be available
-  update_clock(NULL);
-
-  // Hide overlay when ready
-  hide_loading_overlay();
-
-  // Render brief initial frames to finalize screen composition
+  // Update loading label to "Updating weather..." before the blocking HTTP call
+  lv_obj_t* scr = lv_scr_act();
+  uint32_t child_count = lv_obj_get_child_count(scr);
+  for (uint32_t i = 0; i < child_count; i++)
+  {
+    lv_obj_t* child = lv_obj_get_child(scr, i);
+    if (lv_obj_check_type(child, &lv_label_class))
+    {
+      lv_label_set_text(child, get_strings(current_language)->weather_updating);
+      break;
+    }
+  }
   for (int i = 0; i < 10; i++)
   {
+    lv_tick_inc(5);
+    lv_timer_handler();
+    delay(5);
+  }
+
+  fetch_and_update_weather();  // sets configTime only, labels are null so UI update skipped
+
+  lv_timer_create(update_clock, 1000, NULL);
+  create_ui();
+  update_clock(NULL);
+
+  fetch_and_update_weather();  // labels now exist, populates UI with real data
+
+  // First paint — main screen appears with real data already in place
+  for (int i = 0; i < 20; i++)
+  {
+    lv_tick_inc(5);
     lv_timer_handler();
     delay(5);
   }
@@ -529,6 +555,7 @@ void flush_wifi_splashscreen(uint32_t ms)
   uint32_t start = millis();
   while (millis() - start < ms)
   {
+    lv_tick_inc(5);
     lv_timer_handler();
     delay(5);
   }
@@ -578,6 +605,7 @@ void wifi_splash_screen()
   lv_obj_t* lbl = lv_label_create(scr);
   lv_label_set_text(lbl, strings->wifi_config);
   lv_obj_set_style_text_font(lbl, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_text_color(lbl, lv_color_white(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_text_align(lbl, LV_TEXT_ALIGN_CENTER, 0);
   lv_obj_center(lbl);
   lv_scr_load(scr);
@@ -585,7 +613,15 @@ void wifi_splash_screen()
 
 void create_ui()
 {
+  spinner_arc = nullptr;
+  if (spinner_timer)
+  {
+    lv_timer_del(spinner_timer);
+    spinner_timer = nullptr;
+  }
   lv_obj_t* scr = lv_scr_act();
+  lv_obj_clean(scr);
+
   lv_obj_set_style_bg_color(scr, lv_color_hex(0x4c8cb9), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_bg_grad_color(scr, lv_color_hex(0xa6cdec), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_bg_grad_dir(scr, LV_GRAD_DIR_VER, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -713,15 +749,38 @@ void create_ui()
   lbl_clock = lv_label_create(scr);
   lv_obj_set_style_text_font(lbl_clock, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_text_color(lbl_clock, lv_color_hex(0xb9ecff), LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_label_set_text(lbl_clock, "");
+  lv_label_set_text(lbl_clock, "00:00");
   lv_obj_align(lbl_clock, LV_ALIGN_TOP_LEFT, 10, 8);
 
-  // Show wifi signal icon and strength in top-right corner
-  lbl_wifi = lv_label_create(scr);
-  lv_obj_set_style_text_font(lbl_wifi, get_font_14(), LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_set_style_text_color(lbl_wifi, lv_color_hex(0xb9ecff), LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_label_set_text(lbl_wifi, "");
-  lv_obj_align(lbl_wifi, LV_ALIGN_TOP_RIGHT, -10, 8);
+  wifi_container = lv_obj_create(scr);
+  lv_obj_set_size(wifi_container, 22, 16);
+  lv_obj_set_style_pad_all(wifi_container, 0, LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(wifi_container, LV_OPA_TRANSP, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_set_style_border_width(wifi_container, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+  lv_obj_align(wifi_container, LV_ALIGN_TOP_RIGHT, -6, 6);
+  lv_obj_clear_flag(wifi_container, LV_OBJ_FLAG_SCROLLABLE);
+
+  for (int i = 0; i < 4; i++)
+  {
+    wifi_bars[i] = lv_obj_create(wifi_container);
+    int bar_h = 4 + i * 3;
+    lv_obj_set_size(wifi_bars[i], 4, bar_h);
+    lv_obj_set_pos(wifi_bars[i], i * 5, 16 - bar_h);
+    lv_obj_set_style_radius(wifi_bars[i], 1, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_border_width(wifi_bars[i], 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_pad_all(wifi_bars[i], 0, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_color(wifi_bars[i], lv_color_hex(0xb9ecff),
+                              LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_bg_opa(wifi_bars[i], LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
+  }
+}
+
+static void spinner_timer_cb(lv_timer_t* timer)
+{
+  if (!spinner_arc)
+    return;
+  spinner_angle = (spinner_angle + 4) % 360;
+  lv_arc_set_rotation(spinner_arc, spinner_angle);  // rotate the arc segment, don't fill it
 }
 
 void show_loading_screen(const char* message)
@@ -733,45 +792,33 @@ void show_loading_screen(const char* message)
   lv_obj_set_style_bg_grad_dir(scr, LV_GRAD_DIR_VER, LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, LV_PART_MAIN | LV_STATE_DEFAULT);
 
+  spinner_angle = 0;
+
+  spinner_arc = lv_arc_create(scr);
+  lv_obj_set_size(spinner_arc, 50, 50);
+  lv_obj_align(spinner_arc, LV_ALIGN_CENTER, 0, -20);
+  lv_arc_set_angles(spinner_arc, 0, 90);      // fixed 90-degree arc segment
+  lv_arc_set_bg_angles(spinner_arc, 0, 360);  // full background ring
+  lv_arc_set_rotation(spinner_arc, 0);        // start rotation at 0
+  lv_obj_remove_style(spinner_arc, NULL, LV_PART_KNOB);
+  lv_obj_clear_flag(spinner_arc, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_set_style_arc_color(spinner_arc, lv_color_white(), LV_PART_INDICATOR);
+  lv_obj_set_style_arc_width(spinner_arc, 4, LV_PART_INDICATOR);
+  lv_obj_set_style_arc_color(spinner_arc, lv_color_hex(0x6aafd4), LV_PART_MAIN);
+  lv_obj_set_style_arc_width(spinner_arc, 4, LV_PART_MAIN);
+
+  if (spinner_timer)
+  {
+    lv_timer_del(spinner_timer);
+    spinner_timer = nullptr;
+  }
+  spinner_timer = lv_timer_create(spinner_timer_cb, 16, NULL);
+
   lv_obj_t* lbl = lv_label_create(scr);
   lv_label_set_text(lbl, message);
   lv_obj_set_style_text_font(lbl, get_font_16(), LV_PART_MAIN | LV_STATE_DEFAULT);
   lv_obj_set_style_text_color(lbl, lv_color_white(), LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_center(lbl);
-}
-
-lv_obj_t* show_syncing_overlay(const char* message)
-{
-  if (loading_overlay)
-    lv_obj_del(loading_overlay);
-
-  loading_overlay = lv_obj_create(lv_scr_act());
-  lv_obj_set_size(loading_overlay, 150, 50);
-  lv_obj_set_style_bg_color(loading_overlay, lv_color_hex(0x000000),
-                            LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_set_style_bg_opa(loading_overlay, LV_OPA_90, LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_set_style_border_width(loading_overlay, 2, LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_set_style_border_color(loading_overlay, lv_color_hex(0xFFFFFF),
-                                LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_set_style_radius(loading_overlay, 10, LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_align(loading_overlay, LV_ALIGN_CENTER, 0, 0);
-
-  lv_obj_t* lbl = lv_label_create(loading_overlay);
-  lv_label_set_text(lbl, message);
-  lv_obj_set_style_text_font(lbl, get_font_12(), LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_set_style_text_color(lbl, lv_color_white(), LV_PART_MAIN | LV_STATE_DEFAULT);
-  lv_obj_center(lbl);
-
-  return loading_overlay;
-}
-
-void hide_loading_overlay()
-{
-  if (loading_overlay)
-  {
-    lv_obj_del(loading_overlay);
-    loading_overlay = nullptr;
-  }
+  lv_obj_align(lbl, LV_ALIGN_CENTER, 0, 40);
 }
 
 void populate_results_dropdown()
@@ -1570,7 +1617,6 @@ void fetch_and_update_weather()
   if (http.GET() == HTTP_CODE_OK)
   {
     Serial.println("Updated weather from open-meteo: " + url);
-
     String payload = http.getString();
     DynamicJsonDocument doc(32 * 1024);
 
@@ -1592,6 +1638,13 @@ void fetch_and_update_weather()
       configTime(utc_offset_seconds, 0, "pool.ntp.org", "time.nist.gov");
       Serial.print("Updating time from NTP with UTC offset: ");
       Serial.println(utc_offset_seconds);
+
+      // Skip UI updates if the main screen hasn't been built yet
+      if (lbl_today_temp == nullptr)
+      {
+        http.end();
+        return;
+      }
 
       char unit = use_fahrenheit ? 'F' : 'C';
       lv_label_set_text_fmt(lbl_today_temp, "%.0f°%c", t_now, unit);
