@@ -1,0 +1,35 @@
+# Docker Compose for Aura Simulator Development
+# Usage: docker-compose -f docker-compose.dev.yml up
+# Then open http://localhost:5173
+
+version: '3.8'
+
+services:
+  aura-sim:
+    image: node:18-alpine
+    container_name: aura-sim-dev
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    volumes:
+      # Mount the entire simulator source for live reload
+      - .:/app
+      # Persist node_modules as a volume to avoid reinstall
+      - node_modules:/app/node_modules
+      # Mount aura directory for file watching
+      - ../aura:/app/aura:ro
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - AURA_INO_PATH=/app/aura/aura.ino
+    command: >
+      sh -c "
+        if [ ! -d node_modules ]; then
+          npm ci --omit=optional;
+        fi &&
+        npm start
+      "
+    restart: unless-stopped
+
+volumes:
+  node_modules:

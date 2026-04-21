@@ -1,0 +1,49 @@
+# Dependencies
+node_modules
+npm-debug.log
+
+# Build outputs
+dist
+.out
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+.gitmodules
+
+# Testing
+test
+tests
+coverage
+
+# Documentation (not needed in image)
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+LICENSE
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Misc
+scripts/
+aura-sim-*.zip

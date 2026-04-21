@@ -1,0 +1,101 @@
+name: Visual Regression Tests
+
+on:
+  pull_request:
+    paths:
+      - 'aura-sim/**'
+      - '.github/workflows/visual-tests.yml'
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  visual-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: aura-sim/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd aura-sim
+          npm ci
+
+      - name: Install Playwright browsers and dependencies
+        run: |
+          cd aura-sim
+          npx playwright install --with-deps chromium
+
+      - name: Run visual regression tests
+        run: |
+          cd aura-sim
+          npm run test:visual
+        env:
+          # Run in headless mode for CI
+          HEADLESS: true
+
+      - name: Upload diff images as artifacts (if tests fail)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-test-diffs
+          path: aura-sim/tests/output/*.diff.png
+          retention-days: 7
+
+      - name: Comment PR with test results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const resultFile = path.join(process.env.GITHUB_WORKSPACE, 'aura-sim', 'tests', 'output', 'test-summary.json');
+
+            let comment = '## 🧪 Visual Regression Tests\n\n';
+
+            try {
+              // If we have a structured result file
+              if (fs.existsSync(resultFile)) {
+                const results = JSON.parse(fs.readFileSync(resultFile, 'utf8'));
+                const passed = results.filter(r => r.passed).length;
+                const failed = results.filter(r => !r.passed).length;
+
+                comment += `**Results:** ${passed} passed, ${failed} failed\n\n`;
+
+                if (failed > 0) {
+                  comment += 'Failed tests:\n';
+                  results.filter(r => !r.passed).forEach(r => {
+                    comment += `- \`${r.name}\`: ${r.diffPercent.toFixed(3)}% diff`;
+                    if (r.diffImagePath) {
+                      comment += `\n  - Diff: \`${path.basename(r.diffImagePath)}\``;
+                    }
+                    comment += '\n';
+                  });
+                }
+              } else {
+                // Fallback to workflow status
+                const conclusion = '${{ job.visual-tests.outcome }}';
+                comment += `**Status:** ${conclusion}\n\n`;
+                if (conclusion === 'failure') {
+                  comment += 'Visual differences detected. See artifacts for diff images.\n';
+                }
+              }
+            } catch (err) {
+              comment += `**Error:** ${err.message}\n`;
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
