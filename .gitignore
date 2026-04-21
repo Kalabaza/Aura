@@ -7,3 +7,21 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
+
+# Node.js / npm
+node_modules/
+dist/
+.vite/
+build/
+
+# Claude Code tool
+.claude
+
+# Test outputs
+# Visual test reference images
+/tests/references/
+aura-sim/tests/output/
+
+# Python
+__pycache__/
+*.pyc
